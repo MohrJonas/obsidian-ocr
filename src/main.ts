@@ -1,5 +1,6 @@
 import { existsSync } from "fs";
 import { Plugin } from "obsidian";
+import { tmpdir } from "os";
 import * as path from "path";
 
 import { convertToImage } from "./convert";
@@ -18,7 +19,7 @@ export default class MyPlugin extends Plugin {
 			let absOcrPath: string;
 			if(!fileEnding) return;
 			if (fileEnding == "pdf") {
-				const tmpPath = path.join("/tmp", randomString(32) + ".png");
+				const tmpPath = path.join(tmpdir(), randomString(32) + ".png");
 				await convertToImage(absFilePath, tmpPath);
 				absOcrPath = tmpPath;
 			}

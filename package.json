@@ -12,13 +12,24 @@
 	"author": "",
 	"license": "MIT",
 	"devDependencies": {
+		"@types/imagemagick": "^0.0.31",
 		"@types/node": "^16.11.6",
-		"@typescript-eslint/eslint-plugin": "5.29.0",
-		"@typescript-eslint/parser": "5.29.0",
+		"@typescript-eslint/eslint-plugin": "^5.30.4",
+		"@typescript-eslint/parser": "^5.30.4",
 		"builtin-modules": "3.3.0",
 		"esbuild": "0.14.47",
+		"eslint": "^8.19.0",
 		"obsidian": "latest",
 		"tslib": "2.4.0",
 		"typescript": "4.7.4"
+	},
+	"dependencies": {
+		"@types/temp": "^0.9.1",
+		"file-type": "^17.1.2",
+		"imagemagick": "^0.1.3",
+		"install": "^0.13.0",
+		"node-tesseract-promise": "^1.1.1",
+		"npm": "^8.13.2",
+		"tesseractocr": "^2.0.3"
 	}
 }

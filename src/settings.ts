@@ -3,16 +3,24 @@ import { App, Notice, Plugin, PluginSettingTab, Setting } from "obsidian";
 
 interface Settings {
 	ocr_lang: string;
+	fuzzy_search: boolean;
+	case_sensitive: boolean;
 }
 
 const DEFAULT_SETTINGS: Settings = {
-	ocr_lang: "osd"
+	ocr_lang: "osd",
+	fuzzy_search: true,
+	case_sensitive: false
 };
 
 export let currentSettings: Settings;
 
 export async function loadSettings(plugin: Plugin) {
 	currentSettings = Object.assign({}, DEFAULT_SETTINGS, await plugin.loadData());
+}
+
+export async function saveSettings(plugin: Plugin) {
+	await plugin.saveData(currentSettings);
 }
 
 
@@ -46,7 +54,7 @@ export class SettingsTab extends PluginSettingTab {
 					dd.onChange(async (value) => {
 						console.log(value);
 						currentSettings.ocr_lang = value;
-						await this.plugin.saveData(currentSettings);
+						saveSettings(this.plugin);
 					});
 				});
 		});

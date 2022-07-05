@@ -1,5 +1,5 @@
 import { existsSync, readdirSync, readFileSync } from "fs";
-import { Plugin, TFile } from "obsidian";
+import { Notice, Plugin } from "obsidian";
 import { tmpdir } from "os";
 import * as path from "path";
 
@@ -30,11 +30,12 @@ export default class MyPlugin extends Plugin {
 				absOcrPath = absFilePath;
 			}
 			else return;
+			const indexingNotice = new Notice(`Indexing ${file.name}...`, undefined);
 			const hocr = await performOCR(absOcrPath);
 			if(!hocr) return;
 			const hocrObj = parseHocr(file.path, hocr);
-			console.log(hocrObj);
 			this.app.vault.create(`.${file.path}.json`, JSON.stringify(hocrObj, null, 2));
+			indexingNotice.hide();
 		}));
 		this.addSettingTab(new SettingsTab(this.app, this));
 		this.addCommand({
@@ -45,7 +46,7 @@ export default class MyPlugin extends Plugin {
 				//@ts-ignore
 				const jsonFiles: Array<string> = readdirSync(this.app.vault.adapter.basePath).filter((path) => { return getFileEnding(path) == "json"; });
 				const hocrs: Array<Hocr> = jsonFiles.map((jsonFile) => { return Hocr.from_JSON(JSON.parse(readFileSync(vaultPathToAbs(jsonFile)).toString())); });
-				new SearchModal(this.app, hocrs).open();
+				new SearchModal(this.app, this, hocrs).open();
 			}
 		});
 	}

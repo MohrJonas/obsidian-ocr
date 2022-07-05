@@ -23,6 +23,7 @@
 		"typescript": "4.7.4"
 	},
 	"dependencies": {
+		"fuzzy": "^0.1.3",
 		"tesseractocr": "^2.0.3"
 	}
 }

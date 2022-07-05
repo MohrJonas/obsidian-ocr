@@ -52,7 +52,6 @@ export class SettingsTab extends PluginSettingTab {
 					});
 					dd.setValue(currentSettings.ocr_lang);
 					dd.onChange(async (value) => {
-						console.log(value);
 						currentSettings.ocr_lang = value;
 						saveSettings(this.plugin);
 					});

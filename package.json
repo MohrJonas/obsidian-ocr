@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-ocr",
-	"version": "0.1.0",
+	"version": "1.0.0",
 	"description": "Add ocr capabilities to obsidian",
 	"main": "main.js",
 	"scripts": {
@@ -28,7 +28,6 @@
 		"glob": "^8.0.3",
 		"pdf-lib": "^1.17.1",
 		"pdf2pic": "^2.1.4",
-		"pdfjs-dist": "^2.14.305",
 		"tesseractocr": "^2.0.3"
 	}
 }

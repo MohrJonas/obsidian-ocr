@@ -51,6 +51,20 @@ export default class MyPlugin extends Plugin {
 			notice.hide();
 		}));
 		this.addSettingTab(new SettingsTab(this.app, this));
+		this.addRibbonIcon("magnifying-glass", "Search OCR", () => {
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			//@ts-ignore
+			glob(`${this.app.vault.adapter.basePath}/**/*.json`, {
+				dot: true,
+				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+				//@ts-ignore
+				ignore: [`${this.app.vault.adapter.basePath}/.obsidian/**/*`]
+			}, (err, matches) => {
+				if (err) new Notice(err.message);
+				const hocrs: Array<Hocr> = matches.map((jsonFile) => { return Hocr.from_JSON(JSON.parse(readFileSync(jsonFile).toString())); });
+				new SearchModal(this.app, this, hocrs).open();
+			});
+		});
 		this.addCommand({
 			id: "search-ocr",
 			name: "Search OCR",

@@ -2,19 +2,19 @@ import { App, Plugin, Setting, SuggestModal, TFile } from "obsidian";
 import Hocr from "./hocr/hocr";
 import * as fuzzy from "fuzzy";
 import { currentSettings, saveSettings } from "./settings";
+import HocrPage from "./hocr/hocr-page";
 
-export default class SearchModal extends SuggestModal<Hocr> {
+export default class SearchModal extends SuggestModal<HocrPage> {
 
-	private hocrs: Array<Hocr>;
-	private query: string;
+	private pages: Array<HocrPage>;
 	private plugin: Plugin;
 
 	constructor(app: App, plugin: Plugin, hocrs: Array<Hocr>) {
 		super(app);
-		this.hocrs = hocrs;
+		this.pages = hocrs.map((hocr) => { return hocr.pages.flat(); }).flat();
 		this.plugin = plugin;
 		new Setting(this.modalEl)
-			.setName("Fuzzy finding")
+			.setName("Fuzzy search")
 			.setDesc("Enable or disable fuzzy search")
 			.addToggle((tc) => {
 				tc.setValue(true);
@@ -24,7 +24,7 @@ export default class SearchModal extends SuggestModal<Hocr> {
 				});
 			});
 		new Setting(this.modalEl)
-			.setName("Case Sensitive")
+			.setName("Case sensitive")
 			.setDesc("Enable or disable case sensitivity")
 			.addToggle((tc) => {
 				tc.setValue(true);
@@ -35,35 +35,34 @@ export default class SearchModal extends SuggestModal<Hocr> {
 			});
 	}
 
-	getSuggestions(query: string): Hocr[] | Promise<Hocr[]> {
+	getSuggestions(query: string): HocrPage[] | Promise<HocrPage[]> {
 		if (currentSettings.fuzzy_search) {
-			return fuzzy.filter(query, this.hocrs, {
-				extract: (hocr: Hocr) => {
-					return hocr.flattenText();
+			return fuzzy.filter(query, this.pages, {
+				extract: (page: HocrPage) => {
+					return page.words.map((word) => { return word.text; }).join(" ");
 				}
 			}).map((score) => { return score.original; });
 		}
 		else {
-			return this.hocrs.filter((hocr) => { 
+			return this.pages.filter((page) => { 
 				if(currentSettings.case_sensitive)
-					return hocr.flattenText().toLowerCase().includes(query.toLowerCase());
+					return page.words.map((word) => { return word.text; }).join(" ").toLowerCase().includes(query.toLowerCase());
 				else
-					return hocr.flattenText().includes(query);
+					return page.words.map((word) => { return word.text; }).join(" ").includes(query);
 			});
 		}
 	}
 
-	renderSuggestion(value: Hocr, el: HTMLElement) {
-		/*const wordNumbers: Array<number> = [];
-        const words = value.words.map((hocrWord) => { return hocrWord.text; });
-        for (let i = 0; i < words.length; i++) {
-            if(fuzzy.match(this.query, words[i]))
-        }*/
-		el.createEl("div", { text: value.original_file });
-		el.createEl("small", { text: `${value.flattenText().slice(undefined, 80)}...` });
+	renderSuggestion(page: HocrPage, el: HTMLElement) {
+		el.createEl("div", { text: `${page.parent.original_file}, Page ${page.page_number}` });
+		el.createEl("small", { text: `${page.words.map((word) => { return word.text; }).join(" ").slice(undefined, 80)}...` });
 	}
 
-	onChooseSuggestion(item: Hocr) {
-		this.app.workspace.getMostRecentLeaf().openFile(this.app.vault.getAbstractFileByPath(item.original_file) as TFile);
+	onChooseSuggestion(page: HocrPage) {
+		this.app.workspace.getMostRecentLeaf().openFile(this.app.vault.getAbstractFileByPath(page.parent.original_file) as TFile, {
+			eState: {
+				subpath: `#page=${page.page_number}`
+			}
+		});
 	}
 }

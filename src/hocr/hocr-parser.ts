@@ -1,5 +1,5 @@
-import Hocr from "./hocr";
+import HocrPage from "./hocr-page";
 
-export default function parseHocr(original_file: string, text: string): Hocr {
-	return Hocr.from_HTML(original_file, new DOMParser().parseFromString(text, "text/html"));
+export default function parseHocr(text: string): HocrPage {
+	return HocrPage.from_HTML(new DOMParser().parseFromString(text, "text/html"));
 }

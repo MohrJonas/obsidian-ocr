@@ -1,87 +1,64 @@
 import { existsSync, readFileSync } from "fs";
-import { Notice, Plugin } from "obsidian";
-import { tmpdir } from "os";
+import { Notice, Plugin, TFile } from "obsidian";
 import Hocr from "./hocr/hocr";
-import parseHocr from "./hocr/hocr-parser";
-import { performOCR } from "./ocr";
+import { performOCR, stringToDoc } from "./ocr";
 import SearchModal from "./search-modal";
 import { loadSettings, SettingsTab } from "./settings";
-import { getFileEnding, vaultPathToAbs } from "./utils";
-import { fromPath } from "pdf2pic";
-import { WriteImageResponse } from "pdf2pic/dist/types/writeImageResponse";
-import { PDFDocument } from "pdf-lib";
-import { basename, dirname, join } from "path";
-import { glob } from "glob";
-
+import { filePathToJsonPath, FILE_TYPE, getAllJsonFiles, getFileType, isFileValid, vaultPathToAbs } from "./utils";
+import { convertPdfToPng } from "./convert";
+import HocrPage from "./hocr/hocr-page";
 export default class MyPlugin extends Plugin {
 
 	override async onload() {
 		await loadSettings(this);
 		this.registerEvent(this.app.vault.on("create", async (file) => {
-			if (existsSync(vaultPathToAbs(`${join(basename(dirname(file.path)), "." + file.name)}.json`))) return;
-			const fileEnding = getFileEnding(file.name);
-			if (!fileEnding || !["pdf", "png", "jpg", "jpeg"].contains(fileEnding)) return;
-			const notice = new Notice(`Working on ${file.name}`, Number.MAX_VALUE);
-			const absFilePath = vaultPathToAbs(file.path);
-			const hocr = new Hocr(file.path, []);
-			if (fileEnding == "pdf") {
-				const document = await PDFDocument.load(readFileSync(absFilePath));
-				const pdf = fromPath(absFilePath, {
-					density: 400,
-					saveFilename: file.name,
-					format: "png",
-					savePath: tmpdir(),
-					width: document.getPage(0).getWidth(),
-					height: document.getPage(0).getHeight()
+			if (existsSync(vaultPathToAbs(filePathToJsonPath(file.path))) || !(await isFileValid(file as TFile))) return;
+			const processingNotice = new Notice(`Processing file ${file.name}`);
+			switch (getFileType(file as TFile)) {
+			case FILE_TYPE.PDF: {
+				const imagePaths = await convertPdfToPng(file as TFile);
+				performOCR(imagePaths).then((ocrResults) => {
+					const hocr = new Hocr(
+						file.path,
+						this.manifest.version,
+						ocrResults.map((ocrResult) => { return HocrPage.from_HTML(stringToDoc(ocrResult)); })
+					);
+					this.app.vault.create(filePathToJsonPath(file.path), JSON.stringify(hocr, null, 2));
+					processingNotice.hide();
+					const doneNotice = new Notice(`Done processing ${file.name}`);
+					setTimeout(() => { doneNotice.hide; }, 2000);
 				});
-				const promises = [];
-				for (let i = 1; i <= document.getPageCount(); i++) {
-					promises.push(pdf(i));
-				}
-				const results = await Promise.all(promises);
-				const ocrResults = await Promise.all(results.map((result) => performOCR((result as WriteImageResponse).path as string)));
-				ocrResults.forEach((result) => {
-					hocr.pages.push(parseHocr(result as string));
+				break;
+			}
+			case FILE_TYPE.IMAGE: {
+				performOCR([vaultPathToAbs(file.path)]).then((ocrResults) => {
+					const hocr = new Hocr(file.path, this.manifest.version, [HocrPage.from_HTML(stringToDoc(ocrResults[0]))]);
+					this.app.vault.create(filePathToJsonPath(file.path), JSON.stringify(hocr, null, 2));
+					processingNotice.setMessage("Done");
+					setTimeout(() => { processingNotice.hide(); }, 2000);
 				});
+				break;
 			}
-			else {
-				hocr.pages.push(parseHocr(await performOCR(absFilePath) as string));
 			}
-			this.app.vault.create(`${join(basename(dirname(file.path)), "." + file.name)}.json`, JSON.stringify(hocr, null, 2));
-			notice.hide();
+		}));
+		this.registerEvent(this.app.vault.on("delete", async (file) => {
+			console.log("delete called");
+			const jsonFilePath = filePathToJsonPath(file.path);
+			console.log(jsonFilePath);
+			console.log(existsSync(vaultPathToAbs(jsonFilePath)));
+			console.log(await isFileValid(file as TFile));
+			if(!existsSync(vaultPathToAbs(jsonFilePath)) || !await isFileValid(file as TFile)) return;
+			this.app.vault.delete(this.app.vault.getAbstractFileByPath(jsonFilePath) as TFile);
 		}));
 		this.addSettingTab(new SettingsTab(this.app, this));
-		this.addRibbonIcon("magnifying-glass", "Search OCR", () => {
-			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-			//@ts-ignore
-			glob(`${this.app.vault.adapter.basePath}/**/*.json`, {
-				dot: true,
-				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-				//@ts-ignore
-				ignore: [`${this.app.vault.adapter.basePath}/.obsidian/**/*`]
-			}, (err, matches) => {
-				if (err) new Notice(err.message);
-				const hocrs: Array<Hocr> = matches.map((jsonFile) => { return Hocr.from_JSON(JSON.parse(readFileSync(jsonFile).toString())); });
-				new SearchModal(this.app, this, hocrs).open();
-			});
-		});
-		this.addCommand({
-			id: "search-ocr",
-			name: "Search OCR",
-			callback: () => {
-				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-				//@ts-ignore
-				glob(`${this.app.vault.adapter.basePath}/**/*.json`, {
-					dot: true,
-					// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-					//@ts-ignore
-					ignore: [`${this.app.vault.adapter.basePath}/.obsidian/**/*`]
-				}, (err, matches) => {
-					if (err) new Notice(err.message);
-					const hocrs: Array<Hocr> = matches.map((jsonFile) => { return Hocr.from_JSON(JSON.parse(readFileSync(jsonFile).toString())); });
-					new SearchModal(this.app, this, hocrs).open();
-				});
-			}
+		this.addRibbonIcon("magnifying-glass", "Search OCR", () => { this.openSearchModal(); });
+		this.addCommand({ id: "search-ocr", name: "Search OCR", callback: () => { this.openSearchModal(); } });
+	}
+
+	openSearchModal() {
+		getAllJsonFiles().then((jsonFiles) => {
+			const hocrs = jsonFiles.map((jsonFile) => { return Hocr.from_JSON(JSON.parse(readFileSync(jsonFile).toString())); });
+			new SearchModal(this.app, this, hocrs).open();
 		});
 	}
 }

@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "fs";
+import { existsSync, readFileSync, renameSync, unlinkSync } from "fs";
 import { Notice, Plugin, TFile } from "obsidian";
 import Hocr from "./hocr/hocr";
 import { performOCR, stringToDoc } from "./ocr";
@@ -42,13 +42,15 @@ export default class MyPlugin extends Plugin {
 			}
 		}));
 		this.registerEvent(this.app.vault.on("delete", async (file) => {
-			console.log("delete called");
-			const jsonFilePath = filePathToJsonPath(file.path);
-			console.log(jsonFilePath);
-			console.log(existsSync(vaultPathToAbs(jsonFilePath)));
-			console.log(await isFileValid(file as TFile));
-			if(!existsSync(vaultPathToAbs(jsonFilePath)) || !await isFileValid(file as TFile)) return;
-			this.app.vault.delete(this.app.vault.getAbstractFileByPath(jsonFilePath) as TFile);
+			const absJsonFilePath = vaultPathToAbs(filePathToJsonPath(file.path));
+			if(!existsSync((absJsonFilePath))) return;
+			unlinkSync(absJsonFilePath);
+		}));
+		this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
+			const oldAbsJsonFilePath = vaultPathToAbs(filePathToJsonPath(oldPath));
+			if(!existsSync(oldAbsJsonFilePath)) return;
+			const newJsonFilePath = vaultPathToAbs(filePathToJsonPath(file.path));
+			renameSync(oldAbsJsonFilePath, newJsonFilePath);
 		}));
 		this.addSettingTab(new SettingsTab(this.app, this));
 		this.addRibbonIcon("magnifying-glass", "Search OCR", () => { this.openSearchModal(); });

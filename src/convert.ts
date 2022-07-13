@@ -1,5 +1,5 @@
 import { readFileSync } from "fs";
-import { TFile } from "obsidian";
+import { TFile, Vault } from "obsidian";
 import { tmpdir } from "os";
 import { PDFDocument } from "pdf-lib";
 import { fromPath } from "pdf2pic";
@@ -11,8 +11,8 @@ import { vaultPathToAbs } from "./utils";
  * @param file The file to convert
  * @returns A list of absolute paths, each representing a page of the pdf
  */
-export async function convertPdfToPng(file: TFile): Promise<Array<string>> {
-	const absFilePath = vaultPathToAbs(file.path);
+export async function convertPdfToPng(vault: Vault, file: TFile): Promise<Array<string>> {
+	const absFilePath = vaultPathToAbs(vault, file.path);
 	const document = await PDFDocument.load(readFileSync(absFilePath));
 	const pdf = fromPath(absFilePath, {
 		density: 400,

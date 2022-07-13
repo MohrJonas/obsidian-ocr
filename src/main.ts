@@ -1,66 +1,50 @@
-import { existsSync, readFileSync, renameSync, unlinkSync } from "fs";
-import { Notice, Plugin, TFile } from "obsidian";
-import Hocr from "./hocr/hocr";
-import { performOCR, stringToDoc } from "./ocr";
-import SearchModal from "./search-modal";
+import { existsSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "fs";
+import { Notice, Plugin, TFile, TFolder } from "obsidian";
 import { loadSettings, SettingsTab } from "./settings";
-import { filePathToJsonPath, FILE_TYPE, getAllJsonFiles, getFileType, isFileValid, vaultPathToAbs } from "./utils";
-import { convertPdfToPng } from "./convert";
-import HocrPage from "./hocr/hocr-page";
+import { doesProgramExist, filePathToJsonPath, listAllFiles, openSearchModal, processFile, removeAllJsonFiles, vaultPathToAbs } from "./utils";
+import { StatusBar } from "./status-bar";
 export default class MyPlugin extends Plugin {
 
 	override async onload() {
+		if (!await doesProgramExist("gm")) {
+			new Notice("Graphicsmagick not found. Obsidian-ocr will not function.");
+			return;
+		}
+		if (!await doesProgramExist("tesseract")) {
+			new Notice("Tesseract not found. Obsidian-ocr will not function.");
+			return;
+		}
+		if (!await doesProgramExist("gs")) {
+			new Notice("Ghostscript not found. Obsidian-ocr will not function.");
+			return;
+		}
 		await loadSettings(this);
+		(await listAllFiles(this.app.vault)).forEach(async (file) => { await processFile(this, file, this.app.vault); });
 		this.registerEvent(this.app.vault.on("create", async (file) => {
-			if (existsSync(vaultPathToAbs(filePathToJsonPath(file.path))) || !(await isFileValid(file as TFile))) return;
-			const processingNotice = new Notice(`Processing file ${file.name}`);
-			switch (getFileType(file as TFile)) {
-			case FILE_TYPE.PDF: {
-				const imagePaths = await convertPdfToPng(file as TFile);
-				performOCR(imagePaths).then((ocrResults) => {
-					const hocr = new Hocr(
-						file.path,
-						this.manifest.version,
-						ocrResults.map((ocrResult) => { return HocrPage.from_HTML(stringToDoc(ocrResult)); })
-					);
-					this.app.vault.create(filePathToJsonPath(file.path), JSON.stringify(hocr, null, 2));
-					processingNotice.hide();
-					const doneNotice = new Notice(`Done processing ${file.name}`);
-					setTimeout(() => { doneNotice.hide; }, 2000);
-				});
-				break;
-			}
-			case FILE_TYPE.IMAGE: {
-				performOCR([vaultPathToAbs(file.path)]).then((ocrResults) => {
-					const hocr = new Hocr(file.path, this.manifest.version, [HocrPage.from_HTML(stringToDoc(ocrResults[0]))]);
-					this.app.vault.create(filePathToJsonPath(file.path), JSON.stringify(hocr, null, 2));
-					processingNotice.setMessage("Done");
-					setTimeout(() => { processingNotice.hide(); }, 2000);
-				});
-				break;
-			}
-			}
+			if (file instanceof TFolder) return;
+			await processFile(this, file as TFile, this.app.vault);
 		}));
 		this.registerEvent(this.app.vault.on("delete", async (file) => {
-			const absJsonFilePath = vaultPathToAbs(filePathToJsonPath(file.path));
-			if(!existsSync((absJsonFilePath))) return;
+			const absJsonFilePath = vaultPathToAbs(this.app.vault, filePathToJsonPath(file.path));
+			if (!existsSync((absJsonFilePath))) return;
 			unlinkSync(absJsonFilePath);
 		}));
 		this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
-			const oldAbsJsonFilePath = vaultPathToAbs(filePathToJsonPath(oldPath));
-			if(!existsSync(oldAbsJsonFilePath)) return;
-			const newJsonFilePath = vaultPathToAbs(filePathToJsonPath(file.path));
+			const oldAbsJsonFilePath = vaultPathToAbs(this.app.vault, filePathToJsonPath(oldPath));
+			if (!existsSync(oldAbsJsonFilePath)) return;
+			const newJsonFilePath = vaultPathToAbs(this.app.vault, filePathToJsonPath(file.path));
 			renameSync(oldAbsJsonFilePath, newJsonFilePath);
+			const jsonObject = JSON.parse(readFileSync(newJsonFilePath).toString());
+			jsonObject.original_file = filePathToJsonPath(file.path);
+			writeFileSync(newJsonFilePath, JSON.stringify(jsonObject, undefined, 2));
 		}));
 		this.addSettingTab(new SettingsTab(this.app, this));
-		this.addRibbonIcon("magnifying-glass", "Search OCR", () => { this.openSearchModal(); });
-		this.addCommand({ id: "search-ocr", name: "Search OCR", callback: () => { this.openSearchModal(); } });
-	}
-
-	openSearchModal() {
-		getAllJsonFiles().then((jsonFiles) => {
-			const hocrs = jsonFiles.map((jsonFile) => { return Hocr.from_JSON(JSON.parse(readFileSync(jsonFile).toString())); });
-			new SearchModal(this.app, this, hocrs).open();
-		});
+		this.addRibbonIcon("magnifying-glass", "Search OCR", () => { openSearchModal(this.app.vault, this.app, this); });
+		this.addCommand({ id: "search-ocr", name: "Search OCR", callback: () => { openSearchModal(this.app.vault, this.app, this); } });
+		this.addCommand({ id: "delete-json", name: "Delete all transcripts", callback: async () => { 
+			await removeAllJsonFiles(this.app.vault); 
+			(await listAllFiles(this.app.vault)).forEach(async (file) => { await processFile(this, file, this.app.vault); });
+		} });
+		StatusBar.setupStatusBar(this.addStatusBarItem());
 	}
 }

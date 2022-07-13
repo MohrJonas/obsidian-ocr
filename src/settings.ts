@@ -1,5 +1,6 @@
 import { exec } from "child_process";
 import { App, Notice, Plugin, PluginSettingTab, Setting } from "obsidian";
+import { ConfirmModal } from "./confirm-modal";
 
 interface Settings {
 	ocr_lang: string;
@@ -34,6 +35,7 @@ export class SettingsTab extends PluginSettingTab {
 	}
 
 	override display() {
+		this.containerEl.replaceChildren();
 		exec("tesseract --list-langs", (error, stdout, stderr) => {
 			if (error) {
 				new Notice(error.message);
@@ -43,6 +45,7 @@ export class SettingsTab extends PluginSettingTab {
 			}
 			const langs = stdout.split("\n");
 			langs.shift();
+			langs.pop();
 			new Setting(this.containerEl)
 				.setName("OCR Language")
 				.setDesc("The language used by Tesseract for OCR detection")
@@ -54,6 +57,7 @@ export class SettingsTab extends PluginSettingTab {
 					dd.onChange(async (value) => {
 						currentSettings.ocr_lang = value;
 						saveSettings(this.plugin);
+						new ConfirmModal(this.app, this.plugin).open();
 					});
 				});
 		});

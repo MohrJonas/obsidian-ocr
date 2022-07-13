@@ -1,4 +1,4 @@
-import { App, Plugin, Setting, SuggestModal, TFile } from "obsidian";
+import { App, Notice, Plugin, Setting, SuggestModal, TFile } from "obsidian";
 import Hocr from "./hocr/hocr";
 import * as fuzzy from "fuzzy";
 import { currentSettings, saveSettings } from "./settings";
@@ -44,8 +44,8 @@ export default class SearchModal extends SuggestModal<HocrPage> {
 			}).map((score) => { return score.original; });
 		}
 		else {
-			return this.pages.filter((page) => { 
-				if(currentSettings.case_sensitive)
+			return this.pages.filter((page) => {
+				if (currentSettings.case_sensitive)
 					return page.words.map((word) => { return word.text; }).join(" ").toLowerCase().includes(query.toLowerCase());
 				else
 					return page.words.map((word) => { return word.text; }).join(" ").includes(query);
@@ -59,6 +59,11 @@ export default class SearchModal extends SuggestModal<HocrPage> {
 	}
 
 	onChooseSuggestion(page: HocrPage) {
+		const file = this.app.vault.getAbstractFileByPath(page.parent.original_file);
+		if (!file) {
+			new Notice(`Unable to open file ${page.parent.original_file}. Does it exist?`);
+			return;
+		}
 		this.app.workspace.getMostRecentLeaf().openFile(this.app.vault.getAbstractFileByPath(page.parent.original_file) as TFile, {
 			eState: {
 				subpath: `#page=${page.page_number}`

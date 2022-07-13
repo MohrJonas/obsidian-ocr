@@ -9,7 +9,7 @@ import { recognize } from "tesseractocr";
 async function performOCRSingle(source: string): Promise<string | undefined> {
 	return await recognize(source, {
 		language: currentSettings.ocr_lang,
-		output: "hocr" 
+		output: "hocr"
 	});
 }
 
@@ -22,9 +22,9 @@ export async function performOCR(sources: Array<string>): Promise<Array<string>>
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 	//@ts-ignore
 	const results = [];
-	for(const source in sources) {
+	for (const source in sources) {
 		const ocrResult = await performOCRSingle(sources[source]);
-		if(ocrResult) results.push(ocrResult);
+		if (ocrResult) results.push(ocrResult);
 		else results.push("");
 	}
 	return results;

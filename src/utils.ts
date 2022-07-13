@@ -130,6 +130,10 @@ export async function listAllFiles(vault: Vault): Promise<Array<TFile>> {
 		.map((filePath) => { return vault.getAbstractFileByPath(filePath) as TFile; });
 }
 
+/**
+ * Process a File 
+ * @param file The file to process
+ */
 export async function processFile(plugin: Plugin, file: TFile, vault: Vault) {
 	if (existsSync(vaultPathToAbs(vault, filePathToJsonPath(file.path))) || !(await isFileValid(vault, file as TFile))) return;
 	StatusBar.addIndexingFile(file);

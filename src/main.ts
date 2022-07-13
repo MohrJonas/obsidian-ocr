@@ -1,23 +1,13 @@
 import { existsSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "fs";
-import { Notice, Plugin, TFile, TFolder } from "obsidian";
+import { Plugin, TFile, TFolder } from "obsidian";
 import { loadSettings, SettingsTab } from "./settings";
 import { doesProgramExist, filePathToJsonPath, listAllFiles, openSearchModal, processFile, removeAllJsonFiles, vaultPathToAbs } from "./utils";
 import { StatusBar } from "./status-bar";
+import { DependencyModal } from "./dependency-modal";
 export default class MyPlugin extends Plugin {
 
 	override async onload() {
-		if (!await doesProgramExist("gm")) {
-			new Notice("Graphicsmagick not found. Obsidian-ocr will not function.");
-			return;
-		}
-		if (!await doesProgramExist("tesseract")) {
-			new Notice("Tesseract not found. Obsidian-ocr will not function.");
-			return;
-		}
-		if (!await doesProgramExist("gs")) {
-			new Notice("Ghostscript not found. Obsidian-ocr will not function.");
-			return;
-		}
+		new DependencyModal(this.app, await doesProgramExist("tesseract"), await doesProgramExist("gmasd"), await doesProgramExist("gs")).open();
 		await loadSettings(this);
 		(await listAllFiles(this.app.vault)).forEach(async (file) => { await processFile(this, file, this.app.vault); });
 		this.registerEvent(this.app.vault.on("create", async (file) => {

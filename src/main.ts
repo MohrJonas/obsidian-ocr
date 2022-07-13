@@ -7,7 +7,7 @@ import { DependencyModal } from "./dependency-modal";
 export default class MyPlugin extends Plugin {
 
 	override async onload() {
-		new DependencyModal(this.app, await doesProgramExist("tesseract"), await doesProgramExist("gmasd"), await doesProgramExist("gs")).open();
+		new DependencyModal(this.app, await doesProgramExist("tesseract"), await doesProgramExist("gm"), await doesProgramExist("gs")).open();
 		await loadSettings(this);
 		(await listAllFiles(this.app.vault)).forEach(async (file) => { await processFile(this, file, this.app.vault); });
 		this.registerEvent(this.app.vault.on("create", async (file) => {

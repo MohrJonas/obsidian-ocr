@@ -21,4 +21,4 @@ Obsidian OCR allows you to search for text in your images and pdfs
 - Install any languages you need by installing the appropriate package (usually named `tesseract-data-<lang>`)
 ### Usage
 - On startup / when adding a new file the file is automatically getting searched for text.
-- Using the `magnifying glass` in the ribbon / the `Search OCR` command to perform the search.
+- Use the `magnifying glass` in the ribbon / the `Search OCR` command to perform the search.

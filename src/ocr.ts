@@ -1,16 +1,18 @@
 import { currentSettings } from "./settings";
-import { recognize } from "tesseractocr";
+import exec from "@simplyhexagonal/exec";
 
 /**
  * Perform OCR on a single file
  * @param source The absolute path of the file to ocr
  * @returns A hocr-string if hocr was successful, undefined otherwise
  */
-async function performOCRSingle(source: string): Promise<string | undefined> {
-	return await recognize(source, {
-		language: currentSettings.ocr_lang,
-		output: "hocr"
-	});
+async function performOCRSingle(source: string): Promise<{ exitcode: number, text: string }> {
+	const execReturn = exec(`tesseract "${source}" stdout -l ${currentSettings.ocrLang} hocr`);
+	const result = await execReturn.execPromise;
+	if (result.exitCode != 0) {
+		return { exitcode: result.exitCode, text: result.stderrOutput };
+	}
+	return { exitcode: result.exitCode, text: result.stdoutOutput };
 }
 
 /**
@@ -19,13 +21,14 @@ async function performOCRSingle(source: string): Promise<string | undefined> {
  * @returns A list of hocr-strings
  */
 export async function performOCR(sources: Array<string>): Promise<Array<string>> {
-	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-	//@ts-ignore
 	const results = [];
 	for (const source in sources) {
 		const ocrResult = await performOCRSingle(sources[source]);
-		if (ocrResult) results.push(ocrResult);
-		else results.push("");
+		if (ocrResult.exitcode == 0) results.push(ocrResult.text);
+		else {
+			console.log(`🥵 Error happened during OCR of file ${sources[source]}, using blank page instead: ${ocrResult.text}`);
+			results.push("");
+		}
 	}
 	return results;
 }

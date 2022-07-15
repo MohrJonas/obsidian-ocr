@@ -3,15 +3,15 @@ import { App, Notice, Plugin, PluginSettingTab, Setting } from "obsidian";
 import { ConfirmModal } from "./confirm-modal";
 
 interface Settings {
-	ocr_lang: string;
-	fuzzy_search: boolean;
-	case_sensitive: boolean;
+	ocrLang: string;
+	fuzzySearch: boolean;
+	caseSensitive: boolean;
 }
 
 const DEFAULT_SETTINGS: Settings = {
-	ocr_lang: "osd",
-	fuzzy_search: true,
-	case_sensitive: false
+	ocrLang: "osd",
+	fuzzySearch: true,
+	caseSensitive: false
 };
 
 export let currentSettings: Settings;
@@ -53,9 +53,9 @@ export class SettingsTab extends PluginSettingTab {
 					langs.forEach((lang) => {
 						dd.addOption(lang, lang);
 					});
-					dd.setValue(currentSettings.ocr_lang);
+					dd.setValue(currentSettings.ocrLang);
 					dd.onChange(async (value) => {
-						currentSettings.ocr_lang = value;
+						currentSettings.ocrLang = value;
 						saveSettings(this.plugin);
 						new ConfirmModal(this.app, this.plugin).open();
 					});

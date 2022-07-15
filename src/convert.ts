@@ -4,7 +4,6 @@ import { tmpdir } from "os";
 import { PDFDocument } from "pdf-lib";
 import { fromPath } from "pdf2pic";
 import { WriteImageResponse } from "pdf2pic/dist/types/writeImageResponse";
-import { vaultPathToAbs } from "./utils";
 
 /**
  * Convert an file from a pdf to a png
@@ -12,7 +11,9 @@ import { vaultPathToAbs } from "./utils";
  * @returns A list of absolute paths, each representing a page of the pdf
  */
 export async function convertPdfToPng(vault: Vault, file: TFile): Promise<Array<string>> {
-	const absFilePath = vaultPathToAbs(vault, file.path);
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	//@ts-ignore
+	const absFilePath = vault.adapter.getFullPath(file.path);
 	const document = await PDFDocument.load(readFileSync(absFilePath));
 	const pdf = fromPath(absFilePath, {
 		density: 400,

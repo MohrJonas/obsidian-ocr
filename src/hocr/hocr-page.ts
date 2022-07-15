@@ -5,14 +5,14 @@ export default class HocrPage {
 
 	words: Array<HocrWord>;
 	parent: Hocr;
-	page_number: number;
+	pageNumber: number;
 
 	constructor(words: Array<HocrWord>) {
 		this.words = words;
 	}
 
-	static from_HTML(html: Document): HocrPage {
-		return new HocrPage(Array.from(html.getElementsByClassName("ocrx_word")).map((span) => { return HocrWord.from_span(span as HTMLSpanElement); }));
+	static fromHTML(html: Document): HocrPage {
+		return new HocrPage(Array.from(html.getElementsByClassName("ocrx_word")).map((span) => { return HocrWord.fromSpan(span as HTMLSpanElement); }));
 	}
 
 }

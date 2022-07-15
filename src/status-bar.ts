@@ -1,4 +1,5 @@
 import { TAbstractFile } from "obsidian";
+import { clampFileName } from "./utils";
 
 export abstract class StatusBar {
 
@@ -18,11 +19,15 @@ export abstract class StatusBar {
 		StatusBar.parentHTML.innerText = `🔎 Indexing ${StatusBar.filesToString(StatusBar.indexingFiles)}`;
 	}
 
+	static setStatusBarDeleting() {
+		StatusBar.parentHTML.innerText = "🗑️ Deleting";
+	}
+
 	private static filesToString(files: Array<TAbstractFile>): string {
 		if (files.length <= 2) {
-			return files.map((file) => { return file.name; }).join(", ");
+			return files.map((file) => { return clampFileName(20, file.name); }).join(", ");
 		}
-		return `${files.slice(undefined, 3).map((file) => { return file.name; }).join(", ")} (+${files.length - 2} more)`;
+		return `${files.slice(undefined, 2).map((file) => { return clampFileName(20, file.name); }).join(", ")} (+${files.length - 2} more)`;
 	}
 
 	static addIndexingFile(file: TAbstractFile) {

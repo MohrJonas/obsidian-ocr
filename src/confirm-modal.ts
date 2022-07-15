@@ -1,4 +1,5 @@
 import { App, Modal, Plugin, Setting } from "obsidian";
+import { StatusBar } from "./status-bar";
 import { listAllFiles, processFile, removeAllJsonFiles } from "./utils";
 
 export enum EXIT_CODE {
@@ -19,6 +20,7 @@ export class ConfirmModal extends Modal {
 		this.contentEl.setText("Do you want to remove all previous transcripts? This will force a reindexing of all files.");
 		new Setting(this.contentEl).addButton((bc) => {
 			bc.setWarning().setButtonText("Yes").onClick(async () => {
+				StatusBar.setStatusBarDeleting();
 				await removeAllJsonFiles(this.app.vault);
 				this.close();
 				(await listAllFiles(this.app.vault)).forEach(async (file) => { await processFile(this.plugin, file, this.app.vault); });

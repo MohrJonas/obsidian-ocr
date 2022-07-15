@@ -10,7 +10,7 @@ export default class HocrWord {
 		this.bounds = bounds;
 	}
 
-	static from_span(span: HTMLSpanElement): HocrWord {
+	static fromSpan(span: HTMLSpanElement): HocrWord {
 		const titleParts: Array<string> = span.title.split(" ");
 		titleParts.shift();
 		const boundParts: Array<number> = titleParts.map((part) => { return parseInt(part); });

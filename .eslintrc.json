@@ -31,6 +31,8 @@
         "semi": [
             "error",
             "always"
-        ]
+        ],
+        "camelcase": "error",
+        "@typescript-eslint/ban-ts-ignore": "off"
     }
 }

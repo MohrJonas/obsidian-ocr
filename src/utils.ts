@@ -5,6 +5,9 @@ import { basename, dirname, join } from "path";
 import { PDFDocument } from "pdf-lib";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
+import normalizePath from "normalize-path";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-ignore
 import which from "which";
 import { convertPdfToPng } from "./convert";
 import Hocr from "./hocr/hocr";
@@ -34,25 +37,17 @@ export function filePathToJsonPath(filePath: string): string {
 }
 
 /**
- * Get the file ending of the given TFile or path
- * @param file A TFile or path to get the ending of
- * @returns The file-ending of the file or path, without the dot, f.e. png or undefined if the file has no extension
- */
-export function getFileEnding(file: TFile | string): string | undefined {
-	if (typeof file == "string") return file.split(".").pop();
-	else return file.path.split(".").pop();
-}
-
-/**
  * Check if the file is valid for OCR
  * @param file the file to check
  * @returns true if the file is valid, otherwise false
  */
 export async function isFileValid(vault: Vault, file: TFile): Promise<boolean> {
-	const fileEnding = getFileEnding(file);
+	const fileEnding = file.extension;
 	if (!fileEnding || !["pdf", "png", "jpg", "jpeg"].contains(fileEnding)) return false;
 	if (fileEnding == "pdf") {
-		const document = await PDFDocument.load(readFileSync(vaultPathToAbs(vault, file.path)), {
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		//@ts-ignore
+		const document = await PDFDocument.load(readFileSync(vault.adapter.getFullPath(file.path)), {
 			ignoreEncryption: true
 		});
 		if (document.isEncrypted || document.getPageCount() == 0) return false;
@@ -71,7 +66,7 @@ export enum FILE_TYPE {
  * @returns 
  */
 export function getFileType(file: TFile): FILE_TYPE {
-	if (getFileEnding(file) == "pdf") return FILE_TYPE.PDF;
+	if (file.extension == "pdf") return FILE_TYPE.PDF;
 	else return FILE_TYPE.IMAGE;
 }
 
@@ -82,8 +77,8 @@ export function getFileType(file: TFile): FILE_TYPE {
 export async function getAllJsonFiles(vault: Vault): Promise<Array<string>> {
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 	//@ts-ignore
-	return (await globby([`${vault.adapter.basePath}/**/*.json`], { dot: true, ignore: [`${vault.adapter.basePath}/.obsidian/**/*`] }))
-		.filter((path) => { return getFileEnding(path) == "json" && "ocr_version" in JSON.parse(readFileSync(path).toString()); });
+	return (await globby("**/.*.json", { absolute: true, cwd: normalizePath(vault.adapter.basePath), ignore: [".obsidian/**/*"], dot: true }))
+		.filter((path) => { return ("ocr_version" in JSON.parse(readFileSync(path).toString()) || "ocrVersion" in JSON.parse(readFileSync(path).toString())); });
 }
 
 /**
@@ -112,7 +107,7 @@ export async function doesProgramExist(name: string): Promise<boolean> {
  */
 export function openSearchModal(vault: Vault, app: App, plugin: Plugin) {
 	getAllJsonFiles(vault).then((jsonFiles) => {
-		const hocrs = jsonFiles.map((jsonFile) => { return Hocr.from_JSON(JSON.parse(readFileSync(jsonFile).toString())); });
+		const hocrs = jsonFiles.map((jsonFile) => { return Hocr.fromJSON(JSON.parse(readFileSync(jsonFile).toString())); });
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		//@ts-ignore
 		new SearchModal(app, plugin, hocrs).open();
@@ -126,7 +121,7 @@ export function openSearchModal(vault: Vault, app: App, plugin: Plugin) {
 export async function listAllFiles(vault: Vault): Promise<Array<TFile>> {
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 	//@ts-ignore
-	return (await globby("**/*", { cwd: vault.adapter.basePath, absolute: false, dot: false }))
+	return (await globby("**/*", { cwd: normalizePath(vault.adapter.basePath), absolute: false, dot: false }))
 		.map((filePath) => { return vault.getAbstractFileByPath(filePath) as TFile; });
 }
 
@@ -135,16 +130,16 @@ export async function listAllFiles(vault: Vault): Promise<Array<TFile>> {
  * @param file The file to process
  */
 export async function processFile(plugin: Plugin, file: TFile, vault: Vault) {
-	if (existsSync(vaultPathToAbs(vault, filePathToJsonPath(file.path))) || !(await isFileValid(vault, file as TFile))) return;
+	if (existsSync(vaultPathToAbs(vault, filePathToJsonPath(file.path))) || !(await isFileValid(vault, file))) return;
 	StatusBar.addIndexingFile(file);
-	switch (getFileType(file as TFile)) {
+	switch (getFileType(file)) {
 	case FILE_TYPE.PDF: {
 		const imagePaths = await convertPdfToPng(vault, file as TFile);
 		performOCR(imagePaths).then((ocrResults) => {
 			const hocr = new Hocr(
 				file.path,
 				plugin.manifest.version,
-				ocrResults.map((ocrResult) => { return HocrPage.from_HTML(stringToDoc(ocrResult)); })
+				ocrResults.map((ocrResult) => { return HocrPage.fromHTML(stringToDoc(ocrResult)); })
 			);
 			vault.create(filePathToJsonPath(file.path), JSON.stringify(hocr, null, 2));
 			StatusBar.removeIndexingFile(file);
@@ -152,12 +147,19 @@ export async function processFile(plugin: Plugin, file: TFile, vault: Vault) {
 		break;
 	}
 	case FILE_TYPE.IMAGE: {
-		performOCR([vaultPathToAbs(vault, file.path)]).then((ocrResults) => {
-			const hocr = new Hocr(file.path, plugin.manifest.version, [HocrPage.from_HTML(stringToDoc(ocrResults[0]))]);
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		//@ts-ignore
+		performOCR([vault.adapter.getFullPath(file.path)]).then((ocrResults) => {
+			const hocr = new Hocr(file.path, plugin.manifest.version, [HocrPage.fromHTML(stringToDoc(ocrResults[0]))]);
 			vault.create(filePathToJsonPath(file.path), JSON.stringify(hocr, null, 2));
 			StatusBar.removeIndexingFile(file);
 		});
 		break;
 	}
 	}
+}
+
+export function clampFileName(maxLength: number, fileName: string): string {
+	if(fileName.length <= maxLength) return fileName;
+	return `${fileName.slice(undefined, maxLength - 3)}...`;
 }

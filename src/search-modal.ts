@@ -19,7 +19,7 @@ export default class SearchModal extends SuggestModal<HocrPage> {
 			.addToggle((tc) => {
 				tc.setValue(true);
 				tc.onChange((value) => {
-					currentSettings.fuzzy_search = value;
+					currentSettings.fuzzySearch = value;
 					saveSettings(this.plugin);
 				});
 			});
@@ -29,14 +29,14 @@ export default class SearchModal extends SuggestModal<HocrPage> {
 			.addToggle((tc) => {
 				tc.setValue(true);
 				tc.onChange((value) => {
-					currentSettings.case_sensitive = value;
+					currentSettings.caseSensitive = value;
 					saveSettings(this.plugin);
 				});
 			});
 	}
 
 	getSuggestions(query: string): HocrPage[] | Promise<HocrPage[]> {
-		if (currentSettings.fuzzy_search) {
+		if (currentSettings.fuzzySearch) {
 			return fuzzy.filter(query, this.pages, {
 				extract: (page: HocrPage) => {
 					return page.words.map((word) => { return word.text; }).join(" ");
@@ -45,7 +45,7 @@ export default class SearchModal extends SuggestModal<HocrPage> {
 		}
 		else {
 			return this.pages.filter((page) => {
-				if (currentSettings.case_sensitive)
+				if (currentSettings.caseSensitive)
 					return page.words.map((word) => { return word.text; }).join(" ").toLowerCase().includes(query.toLowerCase());
 				else
 					return page.words.map((word) => { return word.text; }).join(" ").includes(query);
@@ -54,19 +54,19 @@ export default class SearchModal extends SuggestModal<HocrPage> {
 	}
 
 	renderSuggestion(page: HocrPage, el: HTMLElement) {
-		el.createEl("div", { text: `${page.parent.original_file}, Page ${page.page_number}` });
+		el.createEl("div", { text: `${page.parent.originalFile}, Page ${page.pageNumber}` });
 		el.createEl("small", { text: `${page.words.map((word) => { return word.text; }).join(" ").slice(undefined, 80)}...` });
 	}
 
 	onChooseSuggestion(page: HocrPage) {
-		const file = this.app.vault.getAbstractFileByPath(page.parent.original_file);
+		const file = this.app.vault.getAbstractFileByPath(page.parent.originalFile);
 		if (!file) {
-			new Notice(`Unable to open file ${page.parent.original_file}. Does it exist?`);
+			new Notice(`Unable to open file ${page.parent.originalFile}. Does it exist?`);
 			return;
 		}
-		this.app.workspace.getMostRecentLeaf().openFile(this.app.vault.getAbstractFileByPath(page.parent.original_file) as TFile, {
+		this.app.workspace.getMostRecentLeaf().openFile(this.app.vault.getAbstractFileByPath(page.parent.originalFile) as TFile, {
 			eState: {
-				subpath: `#page=${page.page_number}`
+				subpath: `#page=${page.pageNumber}`
 			}
 		});
 	}

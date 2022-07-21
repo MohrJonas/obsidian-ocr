@@ -1,8 +1,8 @@
 import { App, Notice, Plugin, Setting, SuggestModal, TFile } from "obsidian";
-import Hocr from "./hocr/hocr";
+import Hocr from "./../hocr/hocr";
 import * as fuzzy from "fuzzy";
-import { currentSettings, saveSettings } from "./settings";
-import HocrPage from "./hocr/hocr-page";
+import { currentSettings, saveSettings } from "./../settings";
+import HocrPage from "./../hocr/hocr-page";
 
 export default class SearchModal extends SuggestModal<HocrPage> {
 

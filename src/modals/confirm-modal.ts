@@ -1,6 +1,6 @@
 import { App, Modal, Plugin, Setting } from "obsidian";
-import { StatusBar } from "./status-bar";
-import { listAllFiles, processFile, removeAllJsonFiles } from "./utils";
+import { StatusBar } from "../status-bar";
+import { processVault, removeAllJsonFiles } from "../utils";
 
 export enum EXIT_CODE {
 	CHANGE_SETTING,
@@ -23,7 +23,7 @@ export class ConfirmModal extends Modal {
 				StatusBar.setStatusBarDeleting();
 				await removeAllJsonFiles(this.app.vault);
 				this.close();
-				(await listAllFiles(this.app.vault)).forEach(async (file) => { await processFile(this.plugin, file, this.app.vault); });
+				processVault(this.plugin, this.app.vault);
 			});
 		}).addButton((bc) => {
 			bc.setButtonText("No").onClick(() => {

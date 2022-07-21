@@ -1,11 +1,8 @@
 import { existsSync, readFileSync, unlinkSync } from "fs";
-import { globby } from "globby";
 import { App, Plugin, TFile, Vault } from "obsidian";
+import { globby } from "globby";
 import { basename, dirname, join } from "path";
 import { PDFDocument } from "pdf-lib";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-ignore
-import normalizePath from "normalize-path";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
 import which from "which";
@@ -13,8 +10,11 @@ import { convertPdfToPng } from "./convert";
 import Hocr from "./hocr/hocr";
 import HocrPage from "./hocr/hocr-page";
 import { performOCR, stringToDoc } from "./ocr";
-import SearchModal from "./search-modal";
+import SearchModal from "./modals/search-modal";
 import { StatusBar } from "./status-bar";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-ignore
+import normalizePath from "normalize-path";
 
 /**
  * Convert a path relative to the vault it's in to an absolute path
@@ -115,17 +115,6 @@ export function openSearchModal(vault: Vault, app: App, plugin: Plugin) {
 }
 
 /**
- * List all files in the vault
- * @returns A list of TFiles from the vault
- */
-export async function listAllFiles(vault: Vault): Promise<Array<TFile>> {
-	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-	//@ts-ignore
-	return (await globby("**/*", { cwd: normalizePath(vault.adapter.basePath), absolute: false, dot: false }))
-		.map((filePath) => { return vault.getAbstractFileByPath(filePath) as TFile; });
-}
-
-/**
  * Process a File 
  * @param file The file to process
  */
@@ -162,4 +151,18 @@ export async function processFile(plugin: Plugin, file: TFile, vault: Vault) {
 export function clampFileName(maxLength: number, fileName: string): string {
 	if(fileName.length <= maxLength) return fileName;
 	return `${fileName.slice(undefined, maxLength - 3)}...`;
+}
+
+export function processVault(plugin: Plugin,vault: Vault) {
+	vault.getFiles()
+		.filter(async (file) => {return await isFileValid(vault, file);})
+		.forEach(async (file) => { await processFile(plugin, file, vault); });
+}
+
+export function isOCRJson(vault: Vault, file: TFile): boolean {
+	if(file.extension != "json") return false;
+	const jsonObject = JSON.parse(readFileSync(vaultPathToAbs(vault, file.path)).toString());
+	console.log(jsonObject);
+	if("ocr_version" in jsonObject || "ocrVersion" in jsonObject) return true;
+	return false;
 }

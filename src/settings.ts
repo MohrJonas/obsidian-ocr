@@ -1,6 +1,6 @@
 import { exec } from "child_process";
 import { App, Notice, Plugin, PluginSettingTab, Setting } from "obsidian";
-import { ConfirmModal } from "./confirm-modal";
+import { ConfirmModal } from "./modals/confirm-modal";
 
 interface Settings {
 	ocrLang: string;

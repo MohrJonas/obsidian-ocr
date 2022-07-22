@@ -13,6 +13,37 @@ Obsidian OCR allows you to search for text in your images and pdfs
 ⚠ I had problems with the latest version 1.3.36, so I used 1.3.35 instead ⚠
 - Install `ghostscript` from <https://ghostscript.com/releases/gsdnld.html>
 ⚠ I had problems with graphicsmagick being unable to find ghostscript. This fixed it for me: <https://github.com/GenericMappingTools/gmt/issues/4231#issuecomment-868127347> ⚠
+
+##### MacOS
+
+```
+brew install tesseract
+brew install tesseract-lang
+brew install graphicsmagick
+brew install imagemagick
+brew install ghostscript
+```
+For the path: check where the binaries are located:
+```
+brew list tesseract 
+brew list tesseract-lang
+brew list graphicsmagick
+brew list imagemagick
+brew list ghostscript
+```
+add the paths to "/private/etc/paths" (I also added them to ~/.zshrc, not sure if that is needed) 
+```
+/private/etc/paths
+/opt/homebrew/Cellar/tesseract/5.2.0/bin/
+/opt/homebrew/Cellar/graphicsmagick/1.3.38/bin/
+/opt/homebrew/Cellar/ghostscript/9.56.1/bin/```
+/opt/homebrew/Cellar/imagemagick/7.1.0-43/bin/
+```
+cd /Users/...../.obsidian/plugins
+git clone https://github.com/MohrJonas/obsidian-ocr.git
+npm install
+```
+
 ##### Ubuntu
 - Run `sudo apt install -y tesseract-ocr graphicsmagick ghostscript`
 - Install any languages you need by installing the appropriate package (usually named `tesseract-ocr-<lang>`)

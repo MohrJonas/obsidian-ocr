@@ -21,7 +21,9 @@ Obsidian OCR allows you to search for text in your images and pdfs
 - Install imagemagick : `brew install imagemagick`
 - Install ghostscript : `brew install ghostscript`
 
-For the path: check where the binaries are located:
+For the path: check where the binaries are located and add these to "/private/etc/paths" 
+(I also added them to ~/.zshrc, not sure if that is needed)
+
 - `brew list tesseract`  in my case: `/opt/homebrew/Cellar/tesseract/5.2.0/bin/`
 - `brew list tesseract-lang` in my case: `/opt/homebrew/Cellar/tesseract/5.2.0/bin/`
 - `brew list graphicsmagick` in my case: `/opt/homebrew/Cellar/graphicsmagick/1.3.38/bin/`

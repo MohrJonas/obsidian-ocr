@@ -15,34 +15,18 @@ Obsidian OCR allows you to search for text in your images and pdfs
 ⚠ I had problems with graphicsmagick being unable to find ghostscript. This fixed it for me: <https://github.com/GenericMappingTools/gmt/issues/4231#issuecomment-868127347> ⚠
 
 ##### MacOS
+- Install tesseract: `brew install tesseract`
+- Install tesseract-lang : `brew install tesseract-lang`
+- Install graphicsmagick : `brew install graphicsmagick`
+- Install imagemagick : `brew install imagemagick`
+- Install ghostscript : `brew install ghostscript`
 
-```
-brew install tesseract
-brew install tesseract-lang
-brew install graphicsmagick
-brew install imagemagick
-brew install ghostscript
-```
 For the path: check where the binaries are located:
-```
-brew list tesseract 
-brew list tesseract-lang
-brew list graphicsmagick
-brew list imagemagick
-brew list ghostscript
-```
-add the paths to "/private/etc/paths" (I also added them to ~/.zshrc, not sure if that is needed) 
-```
-/private/etc/paths
-/opt/homebrew/Cellar/tesseract/5.2.0/bin/
-/opt/homebrew/Cellar/graphicsmagick/1.3.38/bin/
-/opt/homebrew/Cellar/ghostscript/9.56.1/bin/```
-/opt/homebrew/Cellar/imagemagick/7.1.0-43/bin/
-```
-cd /Users/...../.obsidian/plugins
-git clone https://github.com/MohrJonas/obsidian-ocr.git
-npm install
-```
+- `brew list tesseract`  in my case: `/opt/homebrew/Cellar/tesseract/5.2.0/bin/`
+- `brew list tesseract-lang` in my case: `/opt/homebrew/Cellar/tesseract/5.2.0/bin/`
+- `brew list graphicsmagick` in my case: `/opt/homebrew/Cellar/graphicsmagick/1.3.38/bin/`
+- `brew list imagemagick` in my case: `/opt/homebrew/Cellar/imagemagick/7.1.0-43/bin/`
+- `brew list ghostscript` in my case: `/opt/homebrew/Cellar/ghostscript/9.56.1/bin/`
 
 ##### Ubuntu
 - Run `sudo apt install -y tesseract-ocr graphicsmagick ghostscript`

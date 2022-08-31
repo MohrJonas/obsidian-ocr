@@ -1,6 +1,7 @@
 import esbuild from "esbuild";
 import process from "process";
 import builtins from "builtin-modules";
+import inlineWorkerPlugin from 'esbuild-plugin-inline-worker';
 
 const banner =
 `/*
@@ -15,7 +16,7 @@ esbuild.build({
 	banner: {
 		js: banner,
 	},
-	entryPoints: ["src/main.ts"],
+	entryPoints: ["src/Main.ts"],
 	bundle: true,
 	external: [
 		"obsidian",
@@ -57,4 +58,5 @@ esbuild.build({
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
 	outfile: "main.js",
+	plugins: [inlineWorkerPlugin()]
 }).catch(() => process.exit(1));

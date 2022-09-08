@@ -21,8 +21,7 @@ export default class ObsidianOCRPlugin extends Plugin {
 	override async onload() {
 		ObsidianOCRPlugin.plugin = this;
 		await SettingsManager.loadSettings(this);
-		OCRProviderManager.registerOCRProvider(new NoOpOCRProvider());
-		OCRProviderManager.registerOCRProvider(new TesseractOCRProvider());
+		OCRProviderManager.registerOCRProviders(new NoOpOCRProvider(), new TesseractOCRProvider());
 		this.registerEvent(this.app.vault.on("create", async (tFile) => {
 			if (tFile instanceof TFolder) return;
 			const file = File.fromFile(tFile as TFile);
@@ -51,8 +50,8 @@ export default class ObsidianOCRPlugin extends Plugin {
 			await writeFile(newFile.jsonFile.absPath, Transcript.encode(transcript));
 		}));
 		this.app.workspace.onLayoutReady(async () => {
-			if(!await areDepsMet()) new Notice("Dependecies aren't met");
-			if(SettingsManager.currentSettings.ocrProviderName == "NoOp") new Notice("Don't forget to select an OCR Provider in the settings.");
+			if (!await areDepsMet()) new Notice("Dependecies aren't met");
+			if (SettingsManager.currentSettings.ocrProviderName == "NoOp") new Notice("Don't forget to select an OCR Provider in the settings.");
 			TranscriptCache.populate();
 		});
 		this.addSettingTab(new SettingsTab(this.app, this));

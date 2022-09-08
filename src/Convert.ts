@@ -33,13 +33,13 @@ export async function convertPdfToPng(file: File): Promise<Array<string>> {
 export async function areDepsMet(): Promise<boolean> {
 	switch (platform()) {
 	case "win32": {
-		return (doesProgramExist("gs") || doesProgramExist("gswin64")) && doesProgramExist("gs");
+		return (await doesProgramExist("gs") || await doesProgramExist("gswin64")) && await doesProgramExist("gm");
 	}
 	case "linux": {
-		return doesProgramExist("gs") && doesProgramExist("gs");
+		return await doesProgramExist("gs") && await doesProgramExist("gm");
 	}
 	case "darwin": {
-		return doesProgramExist("gs") && doesProgramExist("gs");
+		return await doesProgramExist("gs") && await doesProgramExist("gm");
 	}
 	default: {
 		console.log(`Dependency check not implemented for platform ${platform()}. Assuming everything is okay.`);

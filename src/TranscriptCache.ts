@@ -1,6 +1,4 @@
 import Transcript from "./hocr/Transcript";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 import Worker from "./CacheWorker.worker";
 import {StatusBar} from "./StatusBar";
 import {readFile} from "fs/promises";

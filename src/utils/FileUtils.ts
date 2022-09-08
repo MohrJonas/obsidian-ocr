@@ -5,7 +5,7 @@ import {PDFDocument} from "pdf-lib";
 import {readFileSync} from "fs";
 import {globby} from "globby";
 import normalizePath from "normalize-path";
-import ObsidianOCRPlugin from "../Main";
+import {FileSystemAdapter} from "obsidian";
 
 /**
  * Convert a path to a file to the path of the associated json file
@@ -59,9 +59,7 @@ export function getFileType(file: File): FILE_TYPE {
 export async function getAllJsonFiles(): Promise<Array<string>> {
 	return (await globby("**/.*.json", {
 		absolute: true,
-		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-		//@ts-ignore
-		cwd: normalizePath(app.vault.adapter.basePath),
+		cwd: normalizePath((app.vault.adapter as FileSystemAdapter).getBasePath()),
 		ignore: [".obsidian/**/*"],
 		dot: true
 	}));

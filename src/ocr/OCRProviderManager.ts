@@ -8,6 +8,10 @@ export default abstract class OCRProviderManager {
 		OCRProviderManager.ocrProviders.push(provider);
 	}
 
+	static registerOCRProviders(...providers: Array<OCRProvider>) {
+		OCRProviderManager.ocrProviders.push(...providers);
+	}
+
 	static deregisterOCRProvider(): Array<OCRProvider> {
 		return OCRProviderManager.ocrProviders;
 	}

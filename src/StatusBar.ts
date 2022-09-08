@@ -18,11 +18,6 @@ export abstract class StatusBar {
 		StatusBar.parentHTML = parentHTML;
 	}
 
-	static addStatusIndexing() {
-		StatusBar.currentStatus.add(STATUS.INDEXING);
-		StatusBar.updateText();
-	}
-
 	static addStatusDeleting() {
 		StatusBar.currentStatus.add(STATUS.DELETING);
 		StatusBar.updateText();

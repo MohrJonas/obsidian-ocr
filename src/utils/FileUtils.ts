@@ -26,15 +26,16 @@ export function filePathToAnnotationPath(filePath: string): string {
  * @returns true if the file is valid, otherwise false
  */
 export async function isFileValid(file: File): Promise<boolean> {
-	if (["png", "jpg", "jpeg"].contains(file.extension) && !SettingsManager.currentSettings.ocrImage) return false;
+	if (["png", "jpg", "jpeg"].contains(file.extension))
+		return SettingsManager.currentSettings.ocrImage;
 	if (file.extension == "pdf") {
 		if (!SettingsManager.currentSettings.ocrPDF) return false;
 		const document = await PDFDocument.load(readFileSync(file.absPath), {
 			ignoreEncryption: true
 		});
-		if (/*document.isEncrypted || */document.getPageCount() == 0) return false;
+		return document.getPageCount() != 0;
 	}
-	return true;
+	return false;
 }
 
 export enum FILE_TYPE {

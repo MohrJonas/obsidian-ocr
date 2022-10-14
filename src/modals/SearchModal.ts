@@ -18,7 +18,7 @@ export default class SearchModal extends SuggestModal<Page> {
 			return transcript.children;
 		}).flat();
 		if (StatusBar.hasStatus(STATUS.CACHING)) {
-			this.modalEl.createEl("strong", {text: "Search results are incomplete while still indexing"}).id = "suggestion-indexing-warning";
+			this.modalEl.createEl("strong", {text: "Search results are incomplete while caching"}).id = "suggestion-indexing-warning";
 		}
 		new Setting(this.modalEl)
 			.setName("Fuzzy search")

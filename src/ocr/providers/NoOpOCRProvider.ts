@@ -32,4 +32,8 @@ export default class NoOpOCRProvider implements OCRProvider {
 		return true;
 	}
 
+	getReasonIsUnusable(): undefined {
+		return undefined;
+	}
+
 }

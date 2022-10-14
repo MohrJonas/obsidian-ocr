@@ -1,4 +1,4 @@
-import {App, Plugin, PluginSettingTab, Setting} from "obsidian";
+import {App, Notice, Plugin, PluginSettingTab, Setting} from "obsidian";
 import SettingsManager from "./Settings";
 import OCRProviderManager from "./ocr/OCRProviderManager";
 
@@ -31,17 +31,21 @@ export class SettingsTab extends PluginSettingTab {
 		}).setName("OCR PDF").setDesc("Whether PDFs should be OCRed");
 		new Setting(ocrProviderDropdownDiv).addDropdown(async (dd) => {
 			OCRProviderManager.ocrProviders
-				.filter(async (ocrProvider) => {
-					return await ocrProvider.isUsable();
-				})
 				.forEach((ocrProvider) => {
 					dd.addOption(ocrProvider.getProviderName(), ocrProvider.getProviderName());
 				});
 			dd.onChange(async (name) => {
-				SettingsManager.currentSettings.ocrProviderName = name;
-				await SettingsManager.saveSettings();
-				this.hide();
-				this.display();
+				const provider = OCRProviderManager.getByName(name);
+				if(!await provider.isUsable()) {
+					new Notice(`Provider "${provider.getProviderName()}" is not usable because: "${await provider.getReasonIsUnusable()}"`);
+					dd.setValue(SettingsManager.currentSettings.ocrProviderName);
+				}
+				else {
+					SettingsManager.currentSettings.ocrProviderName = name;
+					await SettingsManager.saveSettings();
+					this.hide();
+					this.display();
+				}
 			});
 			dd.setValue(SettingsManager.currentSettings.ocrProviderName);
 		}).setName("OCR Provider").setDesc("The OCR provider to use");

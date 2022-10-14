@@ -19,6 +19,10 @@ export default class TesseractOCRProvider implements OCRProvider {
 			this.settings = TesseractOCRProvider.DEFAULT_SETTINGS;
 	}
 
+	async getReasonIsUnusable(): Promise<undefined | string> {
+		return (await doesProgramExist("tesseract")) ? undefined : "tesseract wasn't found";
+	}
+
 	async displaySettings(element: HTMLElement): Promise<void> {
 		const execReturn = exec("tesseract --list-langs");
 		const result = await execReturn.execPromise;

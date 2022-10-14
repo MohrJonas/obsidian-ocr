@@ -13,15 +13,19 @@ import Transcript from "./hocr/Transcript";
 import {processFile, processVault, removeAllJsonFiles} from "./utils/FileOps";
 import SearchModal from "./modals/SearchModal";
 import {areDepsMet} from "./Convert";
+import UnusableOCRProvider from "./ocr/providers/UnusableOCRProvider";
 
 export default class ObsidianOCRPlugin extends Plugin {
 
 	public static plugin: Plugin;
 
+	/*
+	* Main entrypoint of the plugin
+	*/
 	override async onload() {
 		ObsidianOCRPlugin.plugin = this;
 		await SettingsManager.loadSettings(this);
-		OCRProviderManager.registerOCRProviders(new NoOpOCRProvider(), new TesseractOCRProvider());
+		OCRProviderManager.registerOCRProviders(new NoOpOCRProvider(), new TesseractOCRProvider(), new UnusableOCRProvider());
 		this.registerEvent(this.app.vault.on("create", async (tFile) => {
 			if (tFile instanceof TFolder) return;
 			const file = File.fromFile(tFile as TFile);

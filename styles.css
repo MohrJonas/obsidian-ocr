@@ -1,0 +1,30 @@
+.suggestion-col {
+	overflow: hidden;
+}
+
+#left-col {
+	flex: 25%;
+}
+
+#right-col {
+	flex: 75%;
+}
+
+#suggestion-heading {
+	padding: 0;
+	margin: 0;
+}
+
+#suggestion-text-preview {
+	overflow: hidden;
+}
+
+#suggestion-thumbnail {
+	display: block;
+	margin: auto;
+	width: 60%;
+}
+
+#suggestion-indexing-warning {
+	color: #ff3333;
+}

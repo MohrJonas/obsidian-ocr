@@ -36,6 +36,9 @@ For the path: check where the binaries are located and add these to "/private/et
 ##### Arch / Manjaro
 - Run `sudo pacman -S tesseract graphicsmagick ghostscript`
 - Install any languages you need by installing the appropriate package (usually named `tesseract-data-<lang>`)
+
+Note - if Obsidian is running via the Flatpak installation (such as provided by default in Pop!_OS) then this plugin will not operate. Flatpak sandboxing will change the filepaths so even providing host access will still be problematic. If you have a Flatpak installation you will need to reinstall via a different method to successfully use this plugin.
+
 ### Usage
 - On startup / when adding a new file the file is automatically getting searched for text.
 - Use the `magnifying glass` in the ribbon / the `Search OCR` command to perform the search.

@@ -73,7 +73,4 @@ export default class ObsidianOCRPlugin extends Plugin {
 		});
 		StatusBar.setupStatusBar(this.addStatusBarItem());
 	}
-
-	 async onLayoutReady() {
-	}
 }

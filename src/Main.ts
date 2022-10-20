@@ -54,6 +54,7 @@ export default class ObsidianOCRPlugin extends Plugin {
 			if (!await areDepsMet()) new Notice("Dependecies aren't met");
 			if (SettingsManager.currentSettings.ocrProviderName == "NoOp") new Notice("Don't forget to select an OCR Provider in the settings.");
 			TranscriptCache.populate();
+			processVault();
 		});
 		this.addSettingTab(new SettingsTab(this.app, this));
 		this.addRibbonIcon("magnifying-glass", "Search OCR", () => {

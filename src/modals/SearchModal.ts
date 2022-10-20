@@ -24,7 +24,7 @@ export default class SearchModal extends SuggestModal<Page> {
 			.setName("Fuzzy search")
 			.setDesc("Enable or disable fuzzy search")
 			.addToggle((tc) => {
-				tc.setValue(true);
+				tc.setValue(SettingsManager.currentSettings.fuzzySearch );
 				tc.onChange(async (value) => {
 					SettingsManager.currentSettings.fuzzySearch = value;
 					await SettingsManager.saveSettings();
@@ -35,7 +35,7 @@ export default class SearchModal extends SuggestModal<Page> {
 			.setName("Case sensitive")
 			.setDesc("Enable or disable case sensitivity")
 			.addToggle((tc) => {
-				tc.setValue(true);
+				tc.setValue(SettingsManager.currentSettings.caseSensitive);
 				tc.onChange(async (value) => {
 					SettingsManager.currentSettings.caseSensitive = value;
 					await SettingsManager.saveSettings();

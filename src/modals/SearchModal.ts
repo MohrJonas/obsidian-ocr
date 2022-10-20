@@ -28,6 +28,7 @@ export default class SearchModal extends SuggestModal<Page> {
 				tc.onChange(async (value) => {
 					SettingsManager.currentSettings.fuzzySearch = value;
 					await SettingsManager.saveSettings();
+					this.inputEl.dispatchEvent(new Event("input", {}));
 				});
 			});
 		new Setting(this.modalEl)
@@ -38,6 +39,7 @@ export default class SearchModal extends SuggestModal<Page> {
 				tc.onChange(async (value) => {
 					SettingsManager.currentSettings.caseSensitive = value;
 					await SettingsManager.saveSettings();
+					this.inputEl.dispatchEvent(new Event("input", {}));
 				});
 			});
 		console.profileEnd();

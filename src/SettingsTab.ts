@@ -1,6 +1,7 @@
 import {App, Notice, Plugin, PluginSettingTab, Setting} from "obsidian";
 import SettingsManager from "./Settings";
 import OCRProviderManager from "./ocr/OCRProviderManager";
+import { OcrQueue } from "./utils/OcrQueue";
 
 export class SettingsTab extends PluginSettingTab {
 
@@ -29,6 +30,16 @@ export class SettingsTab extends PluginSettingTab {
 				await SettingsManager.saveSettings();
 			});
 		}).setName("OCR PDF").setDesc("Whether PDFs should be OCRed");
+		new Setting(ocrProviderDropdownDiv).addSlider((slider) => {
+			slider.setLimits(1,50,1);
+			slider.setValue(SettingsManager.currentSettings.concurrentProcesses);
+			slider.setDynamicTooltip();
+			slider.onChange(async (value) => {
+				SettingsManager.currentSettings.concurrentProcesses = value;
+				OcrQueue.changeMaxProcesses(value);
+				await SettingsManager.saveSettings();
+			});
+		}).setName("Max OCR Processes").setDesc("Set the maximimum number of concurrent OCR Processes");
 		new Setting(ocrProviderDropdownDiv).addDropdown(async (dd) => {
 			OCRProviderManager.ocrProviders
 				.forEach((ocrProvider) => {

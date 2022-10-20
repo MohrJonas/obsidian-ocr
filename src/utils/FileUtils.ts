@@ -2,7 +2,7 @@ import {basename, dirname, join} from "path";
 import File from "../File";
 import SettingsManager from "../Settings";
 import {PDFDocument} from "pdf-lib";
-import {readFileSync} from "fs";
+import {existsSync, readFileSync} from "fs";
 import {globby} from "globby";
 import normalizePath from "normalize-path";
 import {FileSystemAdapter} from "obsidian";
@@ -64,4 +64,13 @@ export async function getAllJsonFiles(): Promise<Array<string>> {
 		ignore: [".obsidian/**/*"],
 		dot: true
 	}));
+}
+
+/**
+ * Check whether this is a file to process via OCR
+ * @param file 
+ * @returns boolean
+ */
+export async function isFileOCRable(file: File) : Promise<boolean> {
+	return (!existsSync(file.jsonFile.absPath) && (await isFileValid(file)));
 }

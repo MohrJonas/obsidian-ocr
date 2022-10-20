@@ -49,6 +49,7 @@ export default class SearchModal extends SuggestModal<Page> {
 
 	getSuggestions(query: string): Page[] | Promise<Page[]> {
 		this.query = query;
+		if (!query) return [];
 		if (SettingsManager.currentSettings.fuzzySearch) {
 			return fuzzy.filter(query, this.pages, {
 				extract: (page: Page) => {

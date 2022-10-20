@@ -6,12 +6,14 @@ import SettingsManager from "../Settings";
 import { processFile } from "./FileOps";
 import Transcript from "../hocr/Transcript";
 import { isFileOCRable } from "./FileUtils";
+import { clearTimeout, setTimeout } from "timers";
 
 
 
 export class OcrQueue {
 
 	static ocrQueue: QueueObject<File>;
+	static processChangeTimer: NodeJS.Timeout;
 
 	public static getQueue() {
 		this.ocrQueue = this.ocrQueue || async.queue(async function (file, callback) {
@@ -32,8 +34,15 @@ export class OcrQueue {
 		StatusBar.addIndexingFile(file);
 	}
 
+	public static _changeMaxProcesses(processes: number) {
+		OcrQueue.getQueue().concurrency = processes;
+	}
+
 	public static changeMaxProcesses(processes: number) {
-		this.getQueue().concurrency = processes;
+		if (this.processChangeTimer) {
+			clearTimeout(this.processChangeTimer);
+		}
+		this.processChangeTimer = setTimeout(this._changeMaxProcesses, 10000, processes);
 	}
 
 

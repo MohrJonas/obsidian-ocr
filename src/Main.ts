@@ -71,5 +71,6 @@ export default class ObsidianOCRPlugin extends Plugin {
 			}
 		});
 		StatusBar.setupStatusBar(this.addStatusBarItem());
+		processVault();
 	}
 }

@@ -15,7 +15,6 @@ export class OcrQueue {
 
 	public static getQueue() {
 		this.ocrQueue = this.ocrQueue || async.queue(async function (file, callback) {
-			console.log("Processing " + file.absPath);
 			const transcript = await processFile(file);
 			if (!transcript) return;
 			TranscriptCache.add(transcript);

@@ -25,7 +25,6 @@ export async function removeAllJsonFiles() {
  * @param file The file to process
  */
 export async function processFile(file: File): Promise<Transcript | undefined> {
-	console.log("Inside processFile with "+ file.absPath);
 	switch (getFileType(file)) {
 	case FILE_TYPE.PDF: {
 		const imagePaths = await convertPdfToPng(file);
@@ -42,7 +41,6 @@ export async function processFile(file: File): Promise<Transcript | undefined> {
 		return transcript;
 	}
 	case FILE_TYPE.IMAGE: {
-		console.log("About to process " + file.absPath + " via " + SettingsManager.currentSettings.ocrProviderName);
 		const ocrResults = await OCRProviderManager.getByName(SettingsManager.currentSettings.ocrProviderName).performOCR([file.absPath]);
 		const transcript = new Transcript(
 			file.vaultRelativePath,

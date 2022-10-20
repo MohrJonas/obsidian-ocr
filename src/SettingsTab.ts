@@ -31,7 +31,7 @@ export class SettingsTab extends PluginSettingTab {
 			});
 		}).setName("OCR PDF").setDesc("Whether PDFs should be OCRed");
 		new Setting(ocrProviderDropdownDiv).addSlider((slider) => {
-			slider.setLimits(1,50,1);
+			slider.setLimits(1,10,1);
 			slider.setValue(SettingsManager.currentSettings.concurrentProcesses);
 			slider.setDynamicTooltip();
 			slider.onChange(async (value) => {

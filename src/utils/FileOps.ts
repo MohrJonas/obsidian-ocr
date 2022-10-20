@@ -1,6 +1,5 @@
 import File from "../File";
 import Transcript from "../hocr/Transcript";
-import {existsSync} from "fs";
 import {FILE_TYPE, getAllJsonFiles, getFileType, isFileValid} from "./FileUtils";
 import {StatusBar} from "../StatusBar";
 import {convertPdfToPng} from "../Convert";
@@ -8,6 +7,7 @@ import OCRProviderManager from "../ocr/OCRProviderManager";
 import SettingsManager from "../Settings";
 import ObsidianOCRPlugin from "../Main";
 import {unlink} from "fs/promises";
+import {OcrQueue} from "./OcrQueue";
 
 /**
  * Remove all json-files from the vault
@@ -25,8 +25,6 @@ export async function removeAllJsonFiles() {
  * @param file The file to process
  */
 export async function processFile(file: File): Promise<Transcript | undefined> {
-	if (existsSync(file.jsonFile.absPath) || !(await isFileValid(file))) return undefined;
-	StatusBar.addIndexingFile(file);
 	switch (getFileType(file)) {
 	case FILE_TYPE.PDF: {
 		const imagePaths = await convertPdfToPng(file);
@@ -59,6 +57,7 @@ export async function processFile(file: File): Promise<Transcript | undefined> {
 }
 
 export function processVault() {
+	
 	app.vault.getFiles()
 		.map((tFile) => {
 			return File.fromFile(tFile);
@@ -67,6 +66,6 @@ export function processVault() {
 			return await isFileValid(file);
 		})
 		.forEach(async (file) => {
-			await processFile(file);
+			OcrQueue.enqueueFile(file);
 		});
 }

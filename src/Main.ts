@@ -10,9 +10,10 @@ import TranscriptCache from "./TranscriptCache";
 import {rename, unlink, writeFile} from "fs/promises";
 import File from "./File";
 import Transcript from "./hocr/Transcript";
-import {processFile, processVault, removeAllJsonFiles} from "./utils/FileOps";
+import {processVault, removeAllJsonFiles} from "./utils/FileOps";
 import SearchModal from "./modals/SearchModal";
 import {areDepsMet} from "./Convert";
+import { OcrQueue } from "./utils/OcrQueue";
 
 export default class ObsidianOCRPlugin extends Plugin {
 
@@ -28,10 +29,7 @@ export default class ObsidianOCRPlugin extends Plugin {
 		this.registerEvent(this.app.vault.on("create", async (tFile) => {
 			if (tFile instanceof TFolder) return;
 			const file = File.fromFile(tFile as TFile);
-			const transcript = await processFile(file);
-			if (!transcript) return;
-			TranscriptCache.add(transcript);
-			await this.app.vault.create(file.jsonFile.vaultRelativePath, Transcript.encode(transcript));
+			OcrQueue.enqueueFile(file);
 		}));
 		this.registerEvent(this.app.vault.on("delete", async (tFile) => {
 			if (tFile instanceof TFolder) return;

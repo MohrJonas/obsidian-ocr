@@ -43,8 +43,8 @@ export async function processFile(file: File): Promise<Transcript | undefined> {
 	case FILE_TYPE.IMAGE: {
 		const ocrResults = await OCRProviderManager.getByName(SettingsManager.currentSettings.ocrProviderName).performOCR([file.absPath]);
 		const transcript = new Transcript(
-			file.vaultRelativePath,
 			ObsidianOCRPlugin.plugin.manifest.version,
+			file.vaultRelativePath,
 			[new DOMParser().parseFromString(ocrResults[0], "text/html")],
 			[file.absPath]
 		);

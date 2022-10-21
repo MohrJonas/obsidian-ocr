@@ -1,6 +1,6 @@
 import async, {QueueObject} from "async";
-import {StatusBar} from "src/StatusBar";
-import TranscriptCache from "src/TranscriptCache";
+import {StatusBar} from "../StatusBar";
+import TranscriptCache from "../TranscriptCache";
 import File from "../File";
 import SettingsManager from "../Settings";
 import {processFile} from "./FileOps";

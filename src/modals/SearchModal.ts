@@ -63,9 +63,9 @@ export default class SearchModal extends SuggestModal<Page> {
 		} else {
 			return this.pages.filter((page) => {
 				if (SettingsManager.currentSettings.caseSensitive)
-					return flattenText(page).toLowerCase().includes(query.toLowerCase());
-				else
 					return flattenText(page).includes(query);
+				else
+					return flattenText(page).toLowerCase().includes(query.toLowerCase());
 			});
 		}
 	}

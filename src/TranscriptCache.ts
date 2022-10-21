@@ -73,4 +73,9 @@ export default abstract class TranscriptCache {
 		if (TranscriptCache.populated) return TranscriptCache.cacheBackend;
 		return TranscriptCache.toAdd;
 	}
+
+	static rebuildCache() {
+		TranscriptCache.cacheBackend = [];
+		TranscriptCache.populate();
+	}
 }

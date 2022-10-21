@@ -32,7 +32,10 @@ export default class ObsidianOCRPlugin extends Plugin {
 			OcrQueue.enqueueFile(file);
 		}));
 		this.registerEvent(this.app.vault.on("delete", async (tFile) => {
-			if (tFile instanceof TFolder) return;
+			if (tFile instanceof TFolder) {
+				TranscriptCache.rebuildCache();
+				return;
+			}
 			const file = File.fromFile(tFile as TFile);
 			if (file.jsonFile && existsSync(file.jsonFile.absPath)) {
 				TranscriptCache.remove(await Transcript.load(file.jsonFile.absPath));

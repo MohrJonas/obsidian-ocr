@@ -1,7 +1,7 @@
 import {basename, dirname, join} from "path";
 import File from "../File";
 import SettingsManager from "../Settings";
-import {PDFDocument} from "pdf-lib";
+import {ParseSpeeds, PDFDocument} from "pdf-lib";
 import {existsSync, readFileSync} from "fs";
 import {globby} from "globby";
 import normalizePath from "normalize-path";
@@ -13,11 +13,11 @@ import {FileSystemAdapter} from "obsidian";
  * @returns the json file path. Depending on whether @param filePath is relative or absolute, so is the return value
  */
 export function filePathToJsonPath(filePath: string): string {
-	return join(dirname(filePath), `.${basename(filePath)}.json`);
+	return join(dirname(filePath), `.${basename(filePath)}.ocr.json`);
 }
 
 export function filePathToAnnotationPath(filePath: string): string {
-	return join(dirname(filePath), `.${basename(filePath)}`);
+	return join(dirname(filePath), `.${basename(filePath)}.ocr`);
 }
 
 /**
@@ -31,7 +31,8 @@ export async function isFileValid(file: File): Promise<boolean> {
 	if (file.extension == "pdf") {
 		if (!SettingsManager.currentSettings.ocrPDF) return false;
 		const document = await PDFDocument.load(readFileSync(file.absPath), {
-			ignoreEncryption: true
+			ignoreEncryption: true,
+			parseSpeed: ParseSpeeds.Fastest
 		});
 		return document.getPageCount() != 0;
 	}
@@ -58,7 +59,7 @@ export function getFileType(file: File): FILE_TYPE {
  * @returns A list of all absolute filepaths of the ocr-json files
  */
 export async function getAllJsonFiles(): Promise<Array<string>> {
-	return (await globby("**/.*.json", {
+	return (await globby("**/.*.ocr.json", {
 		absolute: true,
 		cwd: normalizePath((app.vault.adapter as FileSystemAdapter).getBasePath()),
 		ignore: [".obsidian/**/*"],
@@ -68,9 +69,9 @@ export async function getAllJsonFiles(): Promise<Array<string>> {
 
 /**
  * Check whether this is a file to process via OCR
- * @param file 
+ * @param file
  * @returns boolean
  */
-export async function isFileOCRable(file: File) : Promise<boolean> {
+export async function isFileOCRable(file: File): Promise<boolean> {
 	return (!existsSync(file.jsonFile.absPath) && (await isFileValid(file)));
 }

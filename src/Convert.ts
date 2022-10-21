@@ -25,6 +25,7 @@ export async function convertPdfToPng(file: File): Promise<Array<string>> {
 	});
 	const paths = [];
 	for (let i = 1; i <= document.getPageCount(); i++) {
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		paths.push(((await pdf(i)) as WriteImageResponse).path!);
 	}
 	return paths;
@@ -35,9 +36,7 @@ export async function areDepsMet(): Promise<boolean> {
 	case "win32": {
 		return (await doesProgramExist("gs") || await doesProgramExist("gswin64")) && await doesProgramExist("gm");
 	}
-	case "linux": {
-		return await doesProgramExist("gs") && await doesProgramExist("gm");
-	}
+	case "linux":
 	case "darwin": {
 		return await doesProgramExist("gs") && await doesProgramExist("gm");
 	}

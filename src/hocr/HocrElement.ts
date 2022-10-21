@@ -6,10 +6,10 @@ import Transcript from "./Transcript";
 import Page from "./Page";
 import Line from "./Line";
 
-export default interface HocrElement {
-
+interface HocrElement {
 	bounds: BoundingBox | undefined;
 	parent: ContentArea | Line | Page | Paragraph | Word | Transcript | undefined;
 	children: Array<ContentArea | Line | Page | Paragraph | Word | Transcript> | undefined;
-
 }
+
+export default HocrElement;

@@ -57,7 +57,7 @@ export async function processFile(file: File): Promise<Transcript | undefined> {
 }
 
 export function processVault() {
-	
+
 	app.vault.getFiles()
 		.map((tFile) => {
 			return File.fromFile(tFile);

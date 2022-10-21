@@ -1,4 +1,3 @@
-import {clampFileName} from "./utils/Utils";
 import File from "./File";
 
 export enum STATUS {
@@ -13,6 +12,7 @@ export abstract class StatusBar {
 	private static parentHTML: HTMLElement;
 	private static indexingFiles: Array<File> = [];
 	private static currentStatus: Set<STATUS> = new Set();
+	private static max = 0;
 
 	static setupStatusBar(parentHTML: HTMLElement) {
 		StatusBar.parentHTML = parentHTML;
@@ -31,6 +31,7 @@ export abstract class StatusBar {
 	static addIndexingFile(file: File) {
 		StatusBar.indexingFiles.push(file);
 		StatusBar.currentStatus.add(STATUS.INDEXING);
+		StatusBar.max = Math.max(StatusBar.max, StatusBar.indexingFiles.length);
 		StatusBar.updateText();
 	}
 
@@ -61,33 +62,36 @@ export abstract class StatusBar {
 	}
 
 	private static updateText() {
-		if (StatusBar.currentStatus.size == 0) StatusBar.parentHTML.innerText = StatusBar.statusToString(STATUS.IDLING);
-		else StatusBar.parentHTML.innerText = Array.from(StatusBar.currentStatus.values()).map((status) => {
-			return StatusBar.statusToString(status);
-		}).join(", ");
+		StatusBar.parentHTML.replaceChildren();
+		if (StatusBar.currentStatus.size == 0) StatusBar.statusToString(STATUS.IDLING);
+		else StatusBar.currentStatus.forEach((status) => {
+			StatusBar.statusToString(status);
+		});
 	}
 
-	private static statusToString(status: STATUS): string {
-		switch (status) {
-		case STATUS.CACHING:
-			return "🗃️️ Caching";
-		case STATUS.IDLING:
-			return "💤 Idling";
-		case STATUS.INDEXING:
-			return `🔎 Indexing ${StatusBar.filesToString(StatusBar.indexingFiles)}`;
-		case STATUS.DELETING:
-			return "🗑️ Deleting";
+	private static statusToString(status: STATUS) {
+		if(status == STATUS.INDEXING) {
+			StatusBar.parentHTML.createSpan({
+				text: `🔎 Indexing (${StatusBar.max - StatusBar.indexingFiles.length}/${StatusBar.max})`,
+				cls: "bar-element"
+			});
+			const progress = StatusBar.parentHTML.createEl("progress", {
+				cls: "bar-element"
+			});
+			progress.value = StatusBar.max - StatusBar.indexingFiles.length;
+			progress.max = StatusBar.max;
+		} else {
+			StatusBar.parentHTML.createSpan({
+				text: (() => {switch (status) {
+				case STATUS.CACHING:
+					return "🗃️️ Caching";
+				case STATUS.IDLING:
+					return "💤 Idling";
+				case STATUS.DELETING:
+					return "🗑️ Deleting";
+				}})(),
+				cls: "bar-element"
+			});
 		}
-	}
-
-	private static filesToString(files: Array<File>): string {
-		if (files.length <= 2) {
-			return files.map((file) => {
-				return clampFileName(20, file.tFile.name);
-			}).join(", ");
-		}
-		return `${files.slice(undefined, 2).map((file) => {
-			return clampFileName(20, file.tFile.name);
-		}).join(", ")} (+${files.length - 2} more)`;
 	}
 }

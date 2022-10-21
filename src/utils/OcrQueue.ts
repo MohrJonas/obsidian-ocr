@@ -1,13 +1,12 @@
-import async, { QueueObject } from "async";
-import { StatusBar } from "src/StatusBar";
+import async, {QueueObject} from "async";
+import {StatusBar} from "src/StatusBar";
 import TranscriptCache from "src/TranscriptCache";
 import File from "../File";
 import SettingsManager from "../Settings";
-import { processFile } from "./FileOps";
+import {processFile} from "./FileOps";
 import Transcript from "../hocr/Transcript";
-import { isFileOCRable } from "./FileUtils";
+import {isFileOCRable} from "./FileUtils";
 import { clearTimeout, setTimeout } from "timers";
-
 
 
 export class OcrQueue {
@@ -29,7 +28,7 @@ export class OcrQueue {
 	}
 
 	public static async enqueueFile(file: File) {
-		if (! await isFileOCRable(file)) return;
+		if (!await isFileOCRable(file)) return;
 		this.getQueue().push(file);
 		StatusBar.addIndexingFile(file);
 	}

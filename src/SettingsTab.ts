@@ -50,8 +50,7 @@ export class SettingsTab extends PluginSettingTab {
 				if(!await provider.isUsable()) {
 					new Notice(`Provider "${provider.getProviderName()}" is not usable because: "${await provider.getReasonIsUnusable()}"`);
 					dd.setValue(SettingsManager.currentSettings.ocrProviderName);
-				}
-				else {
+				} else {
 					SettingsManager.currentSettings.ocrProviderName = name;
 					await SettingsManager.saveSettings();
 					this.hide();

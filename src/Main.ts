@@ -13,7 +13,7 @@ import Transcript from "./hocr/Transcript";
 import {processVault, removeAllJsonFiles} from "./utils/FileOps";
 import SearchModal from "./modals/SearchModal";
 import {areDepsMet} from "./Convert";
-import { OcrQueue } from "./utils/OcrQueue";
+import {OcrQueue} from "./utils/OcrQueue";
 
 export default class ObsidianOCRPlugin extends Plugin {
 

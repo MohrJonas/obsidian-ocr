@@ -49,6 +49,7 @@ export class SettingsTab extends PluginSettingTab {
 				await SettingsManager.saveSettings();
 			});
 		}).setName("OCR PDF").setDesc("Whether PDFs should be OCRed");
+		let providerDiv: HTMLDivElement;
 		new Setting(this.containerEl).addDropdown(async (dd) => {
 			OCRProviderManager.ocrProviders
 				.forEach((ocrProvider) => {
@@ -62,12 +63,13 @@ export class SettingsTab extends PluginSettingTab {
 				} else {
 					SettingsManager.currentSettings.ocrProviderName = name;
 					await SettingsManager.saveSettings();
-					this.hide();
-					this.display();
+					providerDiv.replaceChildren();
+					OCRProviderManager.getByName(SettingsManager.currentSettings.ocrProviderName).displaySettings(providerDiv);
 				}
 			});
 			dd.setValue(SettingsManager.currentSettings.ocrProviderName);
+			providerDiv = this.containerEl.createDiv();
 		}).setName("OCR Provider").setDesc("The OCR provider to use");
-		OCRProviderManager.getByName(SettingsManager.currentSettings.ocrProviderName).displaySettings(this.containerEl);
+		OCRProviderManager.getByName(SettingsManager.currentSettings.ocrProviderName).displaySettings(providerDiv);
 	}
 }

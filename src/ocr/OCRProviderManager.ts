@@ -1,4 +1,5 @@
 import OCRProvider from "./OCRProvider";
+import {existsSync} from "fs";
 
 export default abstract class OCRProviderManager {
 
@@ -20,5 +21,12 @@ export default abstract class OCRProviderManager {
 		return OCRProviderManager.ocrProviders.filter((ocrProvider) => {
 			return ocrProvider.getProviderName() == name;
 		})[0];
+	}
+
+	static async applyHomebrewWorkaround() {
+		if(existsSync("/opt/homebrew/bin")) {
+			process.env.PATH = `${process.env.PATH}:/opt/homebrew/bin`;
+			console.log(`Applying homebrew workaround. Path is now ${process.env.PATH}`);
+		}
 	}
 }

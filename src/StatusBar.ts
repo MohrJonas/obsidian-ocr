@@ -1,10 +1,9 @@
 import File from "./File";
 
 export enum STATUS {
-	CACHING,
-	IDLING,
-	INDEXING,
-	DELETING
+    CACHING,
+    INDEXING,
+    DELETING
 }
 
 export abstract class StatusBar {
@@ -37,8 +36,10 @@ export abstract class StatusBar {
 
 	static removeIndexingFile(file: File) {
 		StatusBar.indexingFiles.remove(file);
-		if (StatusBar.indexingFiles.length == 0)
+		if (StatusBar.indexingFiles.length == 0) {
 			StatusBar.removeStatusIndexing();
+			StatusBar.max = 0;
+		}
 		StatusBar.updateText();
 	}
 
@@ -63,14 +64,13 @@ export abstract class StatusBar {
 
 	private static updateText() {
 		StatusBar.parentHTML.replaceChildren();
-		if (StatusBar.currentStatus.size == 0) StatusBar.statusToString(STATUS.IDLING);
-		else StatusBar.currentStatus.forEach((status) => {
+		StatusBar.currentStatus.forEach((status) => {
 			StatusBar.statusToString(status);
 		});
 	}
 
 	private static statusToString(status: STATUS) {
-		if(status == STATUS.INDEXING) {
+		if (status == STATUS.INDEXING) {
 			StatusBar.parentHTML.createSpan({
 				text: `🔎 Indexing (${StatusBar.max - StatusBar.indexingFiles.length}/${StatusBar.max})`,
 				cls: "bar-element"
@@ -82,14 +82,14 @@ export abstract class StatusBar {
 			progress.max = StatusBar.max;
 		} else {
 			StatusBar.parentHTML.createSpan({
-				text: (() => {switch (status) {
-				case STATUS.CACHING:
-					return "🗃️️ Caching";
-				case STATUS.IDLING:
-					return "💤 Idling";
-				case STATUS.DELETING:
-					return "🗑️ Deleting";
-				}})(),
+				text: (() => {
+					switch (status) {
+					case STATUS.CACHING:
+						return "🗃️️ Caching";
+					case STATUS.DELETING:
+						return "🗑️ Deleting";
+					}
+				})(),
 				cls: "bar-element"
 			});
 		}

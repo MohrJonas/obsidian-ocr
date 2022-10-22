@@ -24,7 +24,7 @@ export class SettingsTab extends PluginSettingTab {
 				OcrQueue.changeMaxProcesses(value);
 				await SettingsManager.saveSettings();
 			});
-		}).setName("Max OCR Processes").setDesc("Set the maximimum number of concurrent caching processes");
+		}).setName("Max Caching Processes").setDesc("Set the maximimum number of concurrent caching processes");
 		new Setting(this.containerEl).addSlider((slider) => {
 			slider.setLimits(1,100,1);
 			slider.setValue(SettingsManager.currentSettings.concurrentCachingProcesses);

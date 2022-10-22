@@ -14,9 +14,9 @@ import {OcrQueue} from "./OcrQueue";
  */
 export async function removeAllJsonFiles() {
 	StatusBar.addStatusDeleting();
-	(await getAllJsonFiles()).forEach((jsonFile) => {
-		unlink(jsonFile);
-	});
+	for (const jsonFile of (await getAllJsonFiles())) {
+		await unlink(jsonFile.absPath);
+	}
 	StatusBar.removeStatusDeleting();
 }
 

@@ -1,10 +1,10 @@
-import {readFileSync} from "fs";
 import {platform, tmpdir} from "os";
 import {PDFDocument} from "pdf-lib";
 import {fromPath} from "pdf2pic";
 import {WriteImageResponse} from "pdf2pic/dist/types/writeImageResponse";
 import File from "./File";
 import {doesProgramExist} from "./utils/Utils";
+import {readFile} from "fs/promises";
 
 /**
  * Convert a file from a pdf to a png
@@ -12,7 +12,7 @@ import {doesProgramExist} from "./utils/Utils";
  * @returns A list of absolute paths, each representing a page of the pdf
  */
 export async function convertPdfToPng(file: File): Promise<Array<string>> {
-	const document = await PDFDocument.load(readFileSync(file.absPath), {
+	const document = await PDFDocument.load(await readFile(file.absPath), {
 		ignoreEncryption: true
 	});
 	const pdf = fromPath(file.absPath, {
@@ -23,12 +23,10 @@ export async function convertPdfToPng(file: File): Promise<Array<string>> {
 		width: document.getPage(0).getWidth(),
 		height: document.getPage(0).getHeight()
 	});
-	const paths = [];
-	for (let i = 1; i <= document.getPageCount(); i++) {
+	return (await pdf.bulk(-1)).map((response) => {
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		paths.push(((await pdf(i)) as WriteImageResponse).path!);
-	}
-	return paths;
+		return (response as WriteImageResponse).path!;
+	});
 }
 
 export async function areDepsMet(): Promise<boolean> {

@@ -8,7 +8,9 @@ interface Settings {
 	caseSensitive: boolean;
 	ocrImage: boolean;
 	ocrPDF: boolean;
-	concurrentProcesses: number;
+	concurrentIndexingProcesses: number;
+	concurrentCachingProcesses: number;
+
 }
 
 export default abstract class SettingsManager {
@@ -23,7 +25,8 @@ export default abstract class SettingsManager {
 		caseSensitive: false,
 		ocrImage: true,
 		ocrPDF: true,
-		concurrentProcesses: 1
+		concurrentIndexingProcesses: 1,
+		concurrentCachingProcesses: 10
 	};
 
 	static async loadSettings(plugin: Plugin) {

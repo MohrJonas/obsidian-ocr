@@ -1,8 +1,7 @@
 import {basename, dirname, join} from "path";
 import File from "../File";
 import SettingsManager from "../Settings";
-import {ParseSpeeds, PDFDocument} from "pdf-lib";
-import {existsSync, readFileSync} from "fs";
+import {existsSync} from "fs";
 import {globby} from "globby";
 import normalizePath from "normalize-path";
 import {FileSystemAdapter} from "obsidian";
@@ -28,20 +27,14 @@ export function filePathToAnnotationPath(filePath: string): string {
 export async function isFileValid(file: File): Promise<boolean> {
 	if (["png", "jpg", "jpeg"].contains(file.extension))
 		return SettingsManager.currentSettings.ocrImage;
-	if (file.extension == "pdf") {
-		if (!SettingsManager.currentSettings.ocrPDF) return false;
-		const document = await PDFDocument.load(readFileSync(file.absPath), {
-			ignoreEncryption: true,
-			parseSpeed: ParseSpeeds.Fastest
-		});
-		return document.getPageCount() != 0;
-	}
+	if (file.extension == "pdf")
+		return SettingsManager.currentSettings.ocrPDF;
 	return false;
 }
 
 export enum FILE_TYPE {
-	IMAGE,
-	PDF
+    IMAGE,
+    PDF
 }
 
 /**
@@ -58,13 +51,14 @@ export function getFileType(file: File): FILE_TYPE {
  * Find all ocr-json files in the vault
  * @returns A list of all absolute filepaths of the ocr-json files
  */
-export async function getAllJsonFiles(): Promise<Array<string>> {
+export async function getAllJsonFiles(): Promise<Array<File>> {
 	return (await globby("**/.*.ocr.json", {
-		absolute: true,
+		absolute: false,
+		onlyFiles: true,
 		cwd: normalizePath((app.vault.adapter as FileSystemAdapter).getBasePath()),
 		ignore: [".obsidian/**/*"],
 		dot: true
-	}));
+	})).map((filePath) => {return File.fromVaultRelativePath(filePath);});
 }
 
 /**

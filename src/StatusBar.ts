@@ -10,8 +10,10 @@ export abstract class StatusBar {
 
 	private static parentHTML: HTMLElement;
 	private static indexingFiles: Array<File> = [];
+	private static cachingFiles: Array<File> = [];
 	private static currentStatus: Set<STATUS> = new Set();
-	private static max = 0;
+	private static maxIndexingFile = 0;
+	private static maxCachingFile = 0;
 
 	static setupStatusBar(parentHTML: HTMLElement) {
 		StatusBar.parentHTML = parentHTML;
@@ -22,39 +24,40 @@ export abstract class StatusBar {
 		StatusBar.updateText();
 	}
 
-	static addStatusCaching() {
-		StatusBar.currentStatus.add(STATUS.CACHING);
+	static removeStatusDeleting() {
+		StatusBar.currentStatus.delete(STATUS.DELETING);
 		StatusBar.updateText();
 	}
 
 	static addIndexingFile(file: File) {
 		StatusBar.indexingFiles.push(file);
 		StatusBar.currentStatus.add(STATUS.INDEXING);
-		StatusBar.max = Math.max(StatusBar.max, StatusBar.indexingFiles.length);
+		StatusBar.maxIndexingFile = Math.max(StatusBar.maxIndexingFile, StatusBar.indexingFiles.length);
 		StatusBar.updateText();
 	}
 
 	static removeIndexingFile(file: File) {
 		StatusBar.indexingFiles.remove(file);
 		if (StatusBar.indexingFiles.length == 0) {
-			StatusBar.removeStatusIndexing();
-			StatusBar.max = 0;
+			StatusBar.currentStatus.delete(STATUS.INDEXING);
+			StatusBar.maxIndexingFile = 0;
 		}
 		StatusBar.updateText();
 	}
 
-	static removeStatusIndexing() {
-		StatusBar.currentStatus.delete(STATUS.INDEXING);
+	static setMaxCachingFile(max: number) {
+		StatusBar.maxCachingFile = max;
+	}
+
+	static addCachingFile(file: File) {
+		StatusBar.cachingFiles.push(file);
+		StatusBar.currentStatus.add(STATUS.CACHING);
 		StatusBar.updateText();
 	}
 
-	static removeStatusDeleting() {
-		StatusBar.currentStatus.delete(STATUS.DELETING);
-		StatusBar.updateText();
-	}
-
-	static removeStatusCaching() {
-		StatusBar.currentStatus.delete(STATUS.CACHING);
+	static removeCachingFile(file: File) {
+		StatusBar.cachingFiles.remove(file);
+		if (StatusBar.cachingFiles.length == 0) StatusBar.currentStatus.delete(STATUS.CACHING);
 		StatusBar.updateText();
 	}
 
@@ -72,26 +75,29 @@ export abstract class StatusBar {
 	private static statusToString(status: STATUS) {
 		if (status == STATUS.INDEXING) {
 			StatusBar.parentHTML.createSpan({
-				text: `🔎 Indexing (${StatusBar.max - StatusBar.indexingFiles.length}/${StatusBar.max})`,
+				text: `🔎 Indexing (${StatusBar.maxIndexingFile - StatusBar.indexingFiles.length}/${StatusBar.maxIndexingFile})`,
 				cls: "bar-element"
 			});
 			const progress = StatusBar.parentHTML.createEl("progress", {
 				cls: "bar-element"
 			});
-			progress.value = StatusBar.max - StatusBar.indexingFiles.length;
-			progress.max = StatusBar.max;
-		} else {
+			progress.value = StatusBar.maxIndexingFile - StatusBar.indexingFiles.length;
+			progress.max = StatusBar.maxIndexingFile;
+		}
+		else if (status == STATUS.CACHING) {
 			StatusBar.parentHTML.createSpan({
-				text: (() => {
-					switch (status) {
-					case STATUS.CACHING:
-						return "🗃️️ Caching";
-					case STATUS.DELETING:
-						return "🗑️ Deleting";
-					}
-				})(),
+				text: `🗃 Caching (${StatusBar.maxCachingFile - StatusBar.cachingFiles.length}/${StatusBar.maxCachingFile})`,
 				cls: "bar-element"
 			});
+			const progress = StatusBar.parentHTML.createEl("progress", {
+				cls: "bar-element"
+			});
+			progress.value = StatusBar.maxCachingFile - StatusBar.cachingFiles.length;
+			progress.max = StatusBar.maxCachingFile;
 		}
+		else StatusBar.parentHTML.createSpan({
+			text: "🗑️ Deleting",
+			cls: "bar-element"
+		});
 	}
 }

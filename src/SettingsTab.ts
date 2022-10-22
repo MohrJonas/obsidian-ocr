@@ -2,6 +2,7 @@ import {App, Notice, Plugin, PluginSettingTab, Setting} from "obsidian";
 import SettingsManager from "./Settings";
 import OCRProviderManager from "./ocr/OCRProviderManager";
 import { OcrQueue } from "./utils/OcrQueue";
+import TranscriptCache from "./TranscriptCache";
 
 export class SettingsTab extends PluginSettingTab {
 
@@ -14,33 +15,41 @@ export class SettingsTab extends PluginSettingTab {
 
 	override display() {
 		this.containerEl.replaceChildren();
-		const ocrProviderDropdownDiv = this.containerEl.createEl("div");
-		const ocrProviderSettingsDiv = this.containerEl.createEl("div");
-		new Setting(ocrProviderDropdownDiv).addToggle((tc) => {
+		new Setting(this.containerEl).addSlider((slider) => {
+			slider.setLimits(1,10,1);
+			slider.setValue(SettingsManager.currentSettings.concurrentIndexingProcesses);
+			slider.setDynamicTooltip();
+			slider.onChange(async (value) => {
+				SettingsManager.currentSettings.concurrentIndexingProcesses = value;
+				OcrQueue.changeMaxProcesses(value);
+				await SettingsManager.saveSettings();
+			});
+		}).setName("Max OCR Processes").setDesc("Set the maximimum number of concurrent caching processes");
+		new Setting(this.containerEl).addSlider((slider) => {
+			slider.setLimits(1,100,1);
+			slider.setValue(SettingsManager.currentSettings.concurrentCachingProcesses);
+			slider.setDynamicTooltip();
+			slider.onChange(async (value) => {
+				SettingsManager.currentSettings.concurrentCachingProcesses = value;
+				TranscriptCache.changeMaxProcesses(value);
+				await SettingsManager.saveSettings();
+			});
+		}).setName("Max OCR Processes").setDesc("Set the maximimum number of concurrent OCR processes");
+		new Setting(this.containerEl).addToggle((tc) => {
 			tc.setValue(SettingsManager.currentSettings.ocrImage);
 			tc.onChange(async (value) => {
 				SettingsManager.currentSettings.ocrImage = value;
 				await SettingsManager.saveSettings();
 			});
 		}).setName("OCR Image").setDesc("Whether images should be OCRed");
-		new Setting(ocrProviderDropdownDiv).addToggle((tc) => {
+		new Setting(this.containerEl).addToggle((tc) => {
 			tc.setValue(SettingsManager.currentSettings.ocrPDF);
 			tc.onChange(async (value) => {
 				SettingsManager.currentSettings.ocrPDF = value;
 				await SettingsManager.saveSettings();
 			});
 		}).setName("OCR PDF").setDesc("Whether PDFs should be OCRed");
-		new Setting(ocrProviderDropdownDiv).addSlider((slider) => {
-			slider.setLimits(1,10,1);
-			slider.setValue(SettingsManager.currentSettings.concurrentProcesses);
-			slider.setDynamicTooltip();
-			slider.onChange(async (value) => {
-				SettingsManager.currentSettings.concurrentProcesses = value;
-				OcrQueue.changeMaxProcesses(value);
-				await SettingsManager.saveSettings();
-			});
-		}).setName("Max OCR Processes").setDesc("Set the maximimum number of concurrent OCR Processes");
-		new Setting(ocrProviderDropdownDiv).addDropdown(async (dd) => {
+		new Setting(this.containerEl).addDropdown(async (dd) => {
 			OCRProviderManager.ocrProviders
 				.forEach((ocrProvider) => {
 					dd.addOption(ocrProvider.getProviderName(), ocrProvider.getProviderName());
@@ -59,6 +68,6 @@ export class SettingsTab extends PluginSettingTab {
 			});
 			dd.setValue(SettingsManager.currentSettings.ocrProviderName);
 		}).setName("OCR Provider").setDesc("The OCR provider to use");
-		OCRProviderManager.getByName(SettingsManager.currentSettings.ocrProviderName).displaySettings(ocrProviderSettingsDiv);
+		OCRProviderManager.getByName(SettingsManager.currentSettings.ocrProviderName).displaySettings(this.containerEl);
 	}
 }

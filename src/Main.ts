@@ -1,6 +1,6 @@
 import {existsSync} from "fs";
 import {Notice, Plugin, TFile, TFolder} from "obsidian";
-import {StatusBar} from "./StatusBar";
+import {STATUS, StatusBar} from "./StatusBar";
 import {SettingsTab} from "./SettingsTab";
 import SettingsManager from "./Settings";
 import OCRProviderManager from "./ocr/OCRProviderManager";
@@ -14,10 +14,12 @@ import {processVault, removeAllJsonFiles} from "./utils/FileOps";
 import SearchModal from "./modals/SearchModal";
 import {areDepsMet} from "./Convert";
 import {OcrQueue} from "./utils/OcrQueue";
+import {ChildProcess} from "child_process";
 
 export default class ObsidianOCRPlugin extends Plugin {
 
 	public static plugin: Plugin;
+	public static children: Array<ChildProcess> = [];
 
 	/*
 	* Main entrypoint of the plugin
@@ -60,6 +62,9 @@ export default class ObsidianOCRPlugin extends Plugin {
 			TranscriptCache.populate();
 			processVault();
 		});
+		this.app.workspace.on("quit", () => {
+			ObsidianOCRPlugin.children.forEach((child) => { child.kill(); });
+		});
 		this.addSettingTab(new SettingsTab(this.app, this));
 		this.addRibbonIcon("magnifying-glass", "Search OCR", () => {
 			SearchModal.open();
@@ -70,10 +75,18 @@ export default class ObsidianOCRPlugin extends Plugin {
 			}
 		});
 		this.addCommand({
-			id: "delete-json", name: "Delete all transcripts", callback: async () => {
-				await removeAllJsonFiles();
-				processVault();
-			}
+			id: "delete-json",
+			name: "Delete all transcripts",
+			callback: async () => {
+				if(StatusBar.hasStatus(STATUS.CACHING))
+					new Notice("Deleting is not available while caching");
+				else if(StatusBar.hasStatus(STATUS.INDEXING))
+					new Notice("Deleting is not available while indexing");
+				else {
+					await removeAllJsonFiles();
+					processVault();
+				}
+			},
 		});
 		StatusBar.setupStatusBar(this.addStatusBarItem());
 	}

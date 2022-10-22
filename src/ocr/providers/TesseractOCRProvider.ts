@@ -3,6 +3,7 @@ import {doesProgramExist} from "../../utils/Utils";
 import {Notice, Setting} from "obsidian";
 import exec from "@simplyhexagonal/exec";
 import SettingsManager from "../../Settings";
+import ObsidianOCRPlugin from "../../Main";
 
 export default class TesseractOCRProvider implements OCRProvider {
 
@@ -57,6 +58,7 @@ export default class TesseractOCRProvider implements OCRProvider {
 
 	async performOCRSingle(source: string): Promise<{ exitcode: number, text: string }> {
 		const execReturn = exec(`tesseract "${source}" stdout -l ${this.settings.lang} hocr`);
+		ObsidianOCRPlugin.children.push(execReturn.execProcess);
 		const result = await execReturn.execPromise;
 		if (result.exitCode != 0) {
 			return {exitcode: result.exitCode, text: result.stderrOutput};

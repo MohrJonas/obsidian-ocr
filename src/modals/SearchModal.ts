@@ -42,7 +42,6 @@ export default class SearchModal extends SuggestModal<Page> {
 					this.inputEl.dispatchEvent(new Event("input", {}));
 				});
 			});
-		console.profileEnd();
 	}
 
 	static open() {

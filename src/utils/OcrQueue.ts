@@ -23,7 +23,7 @@ export class OcrQueue {
 
 			StatusBar.removeIndexingFile(file);
 			callback();
-		}, SettingsManager.currentSettings.concurrentProcesses);
+		}, SettingsManager.currentSettings.concurrentIndexingProcesses);
 		return this.ocrQueue;
 	}
 
@@ -41,7 +41,7 @@ export class OcrQueue {
 		if (this.processChangeTimer) {
 			clearTimeout(this.processChangeTimer);
 		}
-		this.processChangeTimer = setTimeout(this._changeMaxProcesses, 10000, processes);
+		this.processChangeTimer = setTimeout(this._changeMaxProcesses, 5000, processes);
 	}
 
 

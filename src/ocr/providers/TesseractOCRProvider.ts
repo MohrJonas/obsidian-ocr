@@ -4,6 +4,7 @@ import {Notice, Setting} from "obsidian";
 import exec from "@simplyhexagonal/exec";
 import SettingsManager from "../../Settings";
 import ObsidianOCRPlugin from "../../Main";
+import { EOL } from "os";
 
 export default class TesseractOCRProvider implements OCRProvider {
 
@@ -29,7 +30,7 @@ export default class TesseractOCRProvider implements OCRProvider {
 		const result = await execReturn.execPromise;
 		if (result.exitCode != 0) new Notice(result.stderrOutput);
 		else {
-			const langs = result.stdoutOutput.split("\n");
+			const langs = result.stdoutOutput.split(EOL);
 			langs.shift();
 			langs.pop();
 			new Setting(element)

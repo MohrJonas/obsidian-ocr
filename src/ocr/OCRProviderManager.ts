@@ -1,5 +1,8 @@
 import OCRProvider from "./OCRProvider";
 import {existsSync} from "fs";
+import SettingsManager from "../Settings";
+import { delimiter } from "path";
+import {platform} from "os";
 
 export default abstract class OCRProviderManager {
 
@@ -26,7 +29,23 @@ export default abstract class OCRProviderManager {
 	static async applyHomebrewWorkaround() {
 		if(existsSync("/opt/homebrew/bin")) {
 			process.env.PATH = `${process.env.PATH}:/opt/homebrew/bin`;
-			console.log(`Applying homebrew workaround. Path is now ${process.env.PATH}`);
+			console.log(`Applying homebrew workaround. $PATH is now ${process.env.PATH}`);
 		}
+	}
+
+	static addAdditionalPaths() {
+		if(SettingsManager.currentSettings.additionalSearchPath.length == 0) return;
+		switch (platform()) {
+		case "win32":
+			process.env.PATH = `${process.env.PATH}${SettingsManager.currentSettings.additionalSearchPath}${delimiter}`;
+			break;
+		case "darwin":
+		case "linux":
+			process.env.PATH = `${process.env.PATH}${delimiter}${SettingsManager.currentSettings.additionalSearchPath}`;
+			break;
+		default:
+			console.log(`Additional paths not implemented for platform ${platform()}. Doing nothing.`);
+		}
+		console.log(`Adding additional paths. $PATH is now ${process.env.PATH}`);
 	}
 }

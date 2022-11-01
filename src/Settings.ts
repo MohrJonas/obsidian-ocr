@@ -10,7 +10,7 @@ interface Settings {
 	ocrPDF: boolean;
 	concurrentIndexingProcesses: number;
 	concurrentCachingProcesses: number;
-
+	additionalSearchPath: string;
 }
 
 export default abstract class SettingsManager {
@@ -26,7 +26,8 @@ export default abstract class SettingsManager {
 		ocrImage: true,
 		ocrPDF: true,
 		concurrentIndexingProcesses: 1,
-		concurrentCachingProcesses: 10
+		concurrentCachingProcesses: 10,
+		additionalSearchPath: ""
 	};
 
 	static async loadSettings(plugin: Plugin) {

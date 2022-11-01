@@ -25,9 +25,10 @@ export default class ObsidianOCRPlugin extends Plugin {
 	* Main entrypoint of the plugin
 	*/
 	override async onload() {
-		await OCRProviderManager.applyHomebrewWorkaround();
-		ObsidianOCRPlugin.plugin = this;
 		await SettingsManager.loadSettings(this);
+		ObsidianOCRPlugin.plugin = this;
+		OCRProviderManager.addAdditionalPaths();
+		await OCRProviderManager.applyHomebrewWorkaround();
 		OCRProviderManager.registerOCRProviders(new NoOpOCRProvider(), new TesseractOCRProvider());
 		this.registerEvent(this.app.vault.on("create", async (tFile) => {
 			if (tFile instanceof TFolder) return;

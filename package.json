@@ -1,6 +1,6 @@
 {
   "name": "obsidian-ocr",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Add ocr capabilities to obsidian",
   "main": "main.js",
   "scripts": {

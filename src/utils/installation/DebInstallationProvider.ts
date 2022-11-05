@@ -2,7 +2,7 @@ import InstallationProvider from "./InstallationProvider";
 import {Terminal} from "xterm";
 import ansiColors from "ansi-colors";
 import {exec} from "sudo-prompt";
-import {doesProgramExist} from "./Utils";
+import {doesProgramExist} from "../Utils";
 
 export default class DebInstallationProvider implements InstallationProvider {
 

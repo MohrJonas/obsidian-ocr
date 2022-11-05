@@ -19,8 +19,7 @@ export class OcrQueue {
 			const transcript = await processFile(file);
 			if (!transcript) return;
 			TranscriptCache.add(transcript);
-			await app.vault.create(file.jsonFile.vaultRelativePath, Transcript.encode(transcript));
-
+			app.vault.create(file.jsonFile.vaultRelativePath, Transcript.encode(transcript));
 			StatusBar.removeIndexingFile(file);
 			callback();
 		}, SettingsManager.currentSettings.concurrentIndexingProcesses);
@@ -29,7 +28,7 @@ export class OcrQueue {
 
 	public static async enqueueFile(file: File) {
 		if (!await isFileOCRable(file)) return;
-		await this.getQueue().push(file);
+		this.getQueue().push(file);
 		StatusBar.addIndexingFile(file);
 	}
 

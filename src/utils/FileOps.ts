@@ -15,7 +15,7 @@ import {OcrQueue} from "./OcrQueue";
 export async function removeAllJsonFiles() {
 	StatusBar.addStatusDeleting();
 	for (const jsonFile of (await getAllJsonFiles())) {
-		await unlink(jsonFile.absPath);
+		unlink(jsonFile.absPath);
 	}
 	StatusBar.removeStatusDeleting();
 }
@@ -57,7 +57,6 @@ export async function processFile(file: File): Promise<Transcript | undefined> {
 }
 
 export function processVault() {
-
 	app.vault.getFiles()
 		.map((tFile) => {
 			return File.fromFile(tFile);
@@ -66,6 +65,6 @@ export function processVault() {
 			return await isFileValid(file);
 		})
 		.forEach(async (file) => {
-			OcrQueue.enqueueFile(file);
+			await OcrQueue.enqueueFile(file);
 		});
 }

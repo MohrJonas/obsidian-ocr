@@ -5,7 +5,7 @@ import {OcrQueue} from "./utils/OcrQueue";
 import TranscriptCache from "./TranscriptCache";
 import {delimiter} from "path";
 import {areDepsMet} from "./Convert";
-import InstallationProviderManager from "./utils/InstallationProviderManager";
+import InstallationProviderManager from "./utils/installation/InstallationProviderManager";
 import TerminalModal from "./modals/TerminalModal";
 import ObsidianOCRPlugin from "./Main";
 

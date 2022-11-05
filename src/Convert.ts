@@ -12,7 +12,7 @@ import SettingsManager from "./Settings";
 /**
  * Convert a file from a pdf to a png
  * @param file The file to convert
- * @returns A list of absolute paths, each representing a page of the pdf
+ * @returns A list of absolute png-file paths, each representing a page of the pdf
  */
 export async function convertPdfToPng(file: File): Promise<Array<string>> {
 	let platformSpecific: string;
@@ -34,6 +34,7 @@ export async function convertPdfToPng(file: File): Promise<Array<string>> {
 	const command = `${platformSpecific} -density ${SettingsManager.currentSettings.density} -quality ${SettingsManager.currentSettings.quality} -background white -alpha remove -alpha off ${SettingsManager.currentSettings.additionalImagemagickArgs} "${file.absPath}" "${join(randomFolderPath, "out.png")}"`;
 	const execResult = exec(command);
 	ObsidianOCRPlugin.children.push(execResult.execProcess);
+	await execResult.execPromise;
 	return await globby("*.png", {
 		cwd: randomFolderPath,
 		absolute: true

@@ -15,9 +15,9 @@ import SearchModal from "./modals/SearchModal";
 import {areDepsMet} from "./Convert";
 import {OcrQueue} from "./utils/OcrQueue";
 import {ChildProcess} from "child_process";
-import InstallationProviderManager from "./utils/InstallationProviderManager";
-import WindowsInstallationProvider from "./utils/WindowsInstallationProvider";
-import DebInstallationProvider from "./utils/DebInstallationProvider";
+import InstallationProviderManager from "./utils/installation/InstallationProviderManager";
+import WindowsInstallationProvider from "./utils/installation/WindowsInstallationProvider";
+import DebInstallationProvider from "./utils/installation/DebInstallationProvider";
 
 export default class ObsidianOCRPlugin extends Plugin {
 
@@ -37,7 +37,7 @@ export default class ObsidianOCRPlugin extends Plugin {
 		this.registerEvent(this.app.vault.on("create", async (tFile) => {
 			if (tFile instanceof TFolder) return;
 			const file = File.fromFile(tFile as TFile);
-			await OcrQueue.enqueueFile(file);
+			OcrQueue.enqueueFile(file);
 		}));
 		this.registerEvent(this.app.vault.on("delete", async (tFile) => {
 			if (tFile instanceof TFolder) {
@@ -47,7 +47,7 @@ export default class ObsidianOCRPlugin extends Plugin {
 			const file = File.fromFile(tFile as TFile);
 			if (file.jsonFile && existsSync(file.jsonFile.absPath)) {
 				TranscriptCache.remove(await Transcript.load(file.jsonFile.absPath));
-				await unlink(file.jsonFile.absPath);
+				unlink(file.jsonFile.absPath);
 			}
 		}));
 		this.registerEvent(this.app.vault.on("rename", async (file, oldPath) => {
@@ -59,12 +59,12 @@ export default class ObsidianOCRPlugin extends Plugin {
 			})[0];
 			transcript.originalFilePath = newFile.vaultRelativePath;
 			await rename(oldFile.jsonFile.absPath, newFile.jsonFile.absPath);
-			await writeFile(newFile.jsonFile.absPath, Transcript.encode(transcript));
+			writeFile(newFile.jsonFile.absPath, Transcript.encode(transcript));
 		}));
 		this.app.workspace.onLayoutReady(async () => {
 			if (!await areDepsMet()) new Notice("Dependecies aren't met");
 			if (SettingsManager.currentSettings.ocrProviderName == "NoOp") new Notice("Don't forget to select an OCR Provider in the settings.");
-			await TranscriptCache.populate();
+			TranscriptCache.populate();
 			processVault();
 		});
 		this.app.workspace.on("quit", () => {

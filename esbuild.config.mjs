@@ -50,6 +50,7 @@ esbuild.build({
 		"node:path",
 		"node:url",
 		"node:stream",
+		"browser/Terminal",
 		...builtins],
 	format: "cjs",
 	watch: !prod,

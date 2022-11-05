@@ -15,6 +15,9 @@ import SearchModal from "./modals/SearchModal";
 import {areDepsMet} from "./Convert";
 import {OcrQueue} from "./utils/OcrQueue";
 import {ChildProcess} from "child_process";
+import InstallationProviderManager from "./utils/InstallationProviderManager";
+import WindowsInstallationProvider from "./utils/WindowsInstallationProvider";
+import DebInstallationProvider from "./utils/DebInstallationProvider";
 
 export default class ObsidianOCRPlugin extends Plugin {
 
@@ -22,18 +25,19 @@ export default class ObsidianOCRPlugin extends Plugin {
 	public static children: Array<ChildProcess> = [];
 
 	/*
-	* Main entrypoint of the plugin
-	*/
+    * Main entrypoint of the plugin
+    */
 	override async onload() {
 		await SettingsManager.loadSettings(this);
 		ObsidianOCRPlugin.plugin = this;
 		OCRProviderManager.addAdditionalPaths();
 		await OCRProviderManager.applyHomebrewWorkaround();
+		InstallationProviderManager.registerProviders(new WindowsInstallationProvider(), new DebInstallationProvider());
 		OCRProviderManager.registerOCRProviders(new NoOpOCRProvider(), new TesseractOCRProvider());
 		this.registerEvent(this.app.vault.on("create", async (tFile) => {
 			if (tFile instanceof TFolder) return;
 			const file = File.fromFile(tFile as TFile);
-			OcrQueue.enqueueFile(file);
+			await OcrQueue.enqueueFile(file);
 		}));
 		this.registerEvent(this.app.vault.on("delete", async (tFile) => {
 			if (tFile instanceof TFolder) {
@@ -60,11 +64,13 @@ export default class ObsidianOCRPlugin extends Plugin {
 		this.app.workspace.onLayoutReady(async () => {
 			if (!await areDepsMet()) new Notice("Dependecies aren't met");
 			if (SettingsManager.currentSettings.ocrProviderName == "NoOp") new Notice("Don't forget to select an OCR Provider in the settings.");
-			TranscriptCache.populate();
+			await TranscriptCache.populate();
 			processVault();
 		});
 		this.app.workspace.on("quit", () => {
-			ObsidianOCRPlugin.children.forEach((child) => { child.kill(); });
+			ObsidianOCRPlugin.children.forEach((child) => {
+				child.kill();
+			});
 		});
 		this.addSettingTab(new SettingsTab(this.app, this));
 		this.addRibbonIcon("magnifying-glass", "Search OCR", () => {
@@ -79,9 +85,9 @@ export default class ObsidianOCRPlugin extends Plugin {
 			id: "delete-json",
 			name: "Delete all transcripts",
 			callback: async () => {
-				if(StatusBar.hasStatus(STATUS.CACHING))
+				if (StatusBar.hasStatus(STATUS.CACHING))
 					new Notice("Deleting is not available while caching");
-				else if(StatusBar.hasStatus(STATUS.INDEXING))
+				else if (StatusBar.hasStatus(STATUS.INDEXING))
 					new Notice("Deleting is not available while indexing");
 				else {
 					await removeAllJsonFiles();

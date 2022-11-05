@@ -11,6 +11,9 @@ interface Settings {
 	concurrentIndexingProcesses: number;
 	concurrentCachingProcesses: number;
 	additionalSearchPath: string;
+	density: number;
+	quality: number;
+	additionalImagemagickArgs: string;
 }
 
 export default abstract class SettingsManager {
@@ -27,7 +30,10 @@ export default abstract class SettingsManager {
 		ocrPDF: true,
 		concurrentIndexingProcesses: 1,
 		concurrentCachingProcesses: 10,
-		additionalSearchPath: ""
+		additionalSearchPath: "",
+		density: 300,
+		quality: 98,
+		additionalImagemagickArgs: ""
 	};
 
 	static async loadSettings(plugin: Plugin) {

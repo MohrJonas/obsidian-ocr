@@ -58,7 +58,9 @@ export async function getAllJsonFiles(): Promise<Array<File>> {
 		cwd: normalizePath((app.vault.adapter as FileSystemAdapter).getBasePath()),
 		ignore: [".obsidian/**/*"],
 		dot: true
-	})).map((filePath) => {return File.fromVaultRelativePath(filePath);});
+	})).map((filePath) => {
+		return File.fromVaultRelativePath(filePath);
+	});
 }
 
 /**

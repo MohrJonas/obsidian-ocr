@@ -101,6 +101,13 @@ export class SettingsTab extends PluginSettingTab {
 				}
 			});
 		});
+		new Setting(this.containerEl).addToggle((tc) => {
+			tc.setValue(SettingsManager.currentSettings.showTips);
+			tc.onChange(async (value) => {
+				SettingsManager.currentSettings.showTips = value;
+				await SettingsManager.saveSettings();
+			});
+		}).setName("Show tips").setDesc("Whether to show a tip at startup");
 		let providerDiv: HTMLDivElement;
 		new Setting(this.containerEl).addDropdown(async (dd) => {
 			OCRProviderManager.ocrProviders

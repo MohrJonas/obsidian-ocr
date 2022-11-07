@@ -18,6 +18,7 @@ import {ChildProcess} from "child_process";
 import InstallationProviderManager from "./utils/installation/InstallationProviderManager";
 import WindowsInstallationProvider from "./utils/installation/WindowsInstallationProvider";
 import DebInstallationProvider from "./utils/installation/DebInstallationProvider";
+import Tips from "./Tips";
 
 export default class ObsidianOCRPlugin extends Plugin {
 
@@ -62,6 +63,7 @@ export default class ObsidianOCRPlugin extends Plugin {
 			writeFile(newFile.jsonFile.absPath, Transcript.encode(transcript));
 		}));
 		this.app.workspace.onLayoutReady(async () => {
+			if(SettingsManager.currentSettings.showTips) Tips.showRandomTip();
 			if (!await areDepsMet()) new Notice("Dependecies aren't met");
 			if (SettingsManager.currentSettings.ocrProviderName == "NoOp") new Notice("Don't forget to select an OCR Provider in the settings.");
 			TranscriptCache.populate();

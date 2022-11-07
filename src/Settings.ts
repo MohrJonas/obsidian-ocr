@@ -14,6 +14,7 @@ interface Settings {
 	density: number;
 	quality: number;
 	additionalImagemagickArgs: string;
+	showTips: boolean;
 }
 
 export default abstract class SettingsManager {
@@ -33,7 +34,8 @@ export default abstract class SettingsManager {
 		additionalSearchPath: "",
 		density: 300,
 		quality: 98,
-		additionalImagemagickArgs: ""
+		additionalImagemagickArgs: "",
+		showTips: true
 	};
 
 	static async loadSettings(plugin: Plugin) {

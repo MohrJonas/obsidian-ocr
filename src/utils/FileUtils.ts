@@ -69,5 +69,5 @@ export async function getAllJsonFiles(): Promise<Array<File>> {
  * @returns boolean
  */
 export async function isFileOCRable(file: File): Promise<boolean> {
-	return (!existsSync(file.jsonFile.absPath) && (await isFileValid(file)));
+	return (file.jsonFile != undefined && !existsSync(file.jsonFile.absPath) && (await isFileValid(file)));
 }

@@ -4,12 +4,13 @@ import {Notice, Setting} from "obsidian";
 import exec from "@simplyhexagonal/exec";
 import SettingsManager from "../../Settings";
 import ObsidianOCRPlugin from "../../Main";
-import { EOL } from "os";
+import {EOL} from "os";
 
 export default class TesseractOCRProvider implements OCRProvider {
 
 	private static readonly DEFAULT_SETTINGS: Record<string, unknown> = {
-		"lang": "osd"
+		"lang": "osd",
+		"additionalArguments": ""
 	};
 	settings: Record<string, unknown>;
 
@@ -26,6 +27,16 @@ export default class TesseractOCRProvider implements OCRProvider {
 	}
 
 	async displaySettings(element: HTMLElement): Promise<void> {
+		new Setting(element)
+			.setName("Additional arguments")
+			.setDesc("Additional commandline arguments passed to tesseract")
+			.addText((tc) => {
+				tc.setValue(this.settings.additionalArguments as string);
+				tc.onChange(async (value) => {
+					this.settings.additionalArguments = value;
+					await SettingsManager.saveOCRProviderSettings(this, this.settings);
+				});
+			});
 		const execReturn = exec("tesseract --list-langs");
 		const result = await execReturn.execPromise;
 		if (result.exitCode != 0) new Notice(result.stderrOutput);
@@ -58,7 +69,7 @@ export default class TesseractOCRProvider implements OCRProvider {
 	}
 
 	async performOCRSingle(source: string): Promise<{ exitcode: number, text: string }> {
-		const execReturn = exec(`tesseract "${source}" stdout -l ${this.settings.lang} hocr`);
+		const execReturn = exec(`tesseract ${this.settings.additionalArguments} "${source}" stdout -l ${this.settings.lang} hocr`);
 		ObsidianOCRPlugin.children.push(execReturn.execProcess);
 		const result = await execReturn.execPromise;
 		if (result.exitCode != 0) {

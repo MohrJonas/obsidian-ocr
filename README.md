@@ -29,6 +29,10 @@ here: <https://www.architectryan.com/2018/03/17/add-to-the-path-on-windows-10/>�
 
 - Install [tesseract](https://github.com/UB-Mannheim/tesseract/wiki)
 - Install [imagemagick](https://imagemagick.org/index.php)
+- If you want to use another language that english, you have to install it manually. (It's really simple)
+    - Go to <https://github.com/tesseract-ocr/tessdata_fast/>
+    - Download the file for your language (i.e. for German download ger.traineddata)
+    - Move to file to `C:\Program Files\Tesseract-OCR\tessdata`
 
 ###### Automatic installation
 
@@ -80,8 +84,15 @@ If you have a Flatpak installation you will need to reinstall via a different me
 
 ### Usage
 
-- On startup / when adding a new file the file is automatically getting searched for text.
-- Use the `magnifying glass` in the ribbon / the `Search OCR` command to perform the search.
+- Upon enabling the plugin, you will see a progress bar in the bottom right, indicating that your vault is currently
+  being processed.
+  ![Indexing](indexing.png)
+- Upon completion, you can either use the `Search OCR` command or the `magnifying-glass icon` in the ribbon to open the
+  search menu.
+  ![SearchModal](search-modal.png)
+- When adding a new PDF / PNG to your vault, the file is automatically being searched for text.
+- Upon starting Obsidian, you will now see another progress bar, indicating that all transcripts are being cached.  
+  ![Caching](caching.png)
 
 ### Settings
 
@@ -107,6 +118,17 @@ Obsidian OCR offers a variety of settings you can configure yourself.
 |-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | NoOp      | The NoOp (no operation) provider does, as the name implies, nothing and is only a dummy provider. To get real OCR capability, you have to switch to another provider |
 | Tesseract | OCR provider using [tesseract](https://tesseract-ocr.github.io/) to OCR documents locally on your computer                                                           |
+
+##### Tesseract
+
+By default, tesseract offers two languages to choose from: `eng` and `osd`.
+
+- Osd isn't a language, but rather stands for `Orientation and script detection` and is therefore not useful for our
+  use.
+- Eng stands for english and should be chosen if your documents are written in english.
+
+ℹ After switching your language, only newly indexed documents use the new language. You can reindex your already added
+documents by using the `Delete all transcripts` command ℹ
 
 #### Custom OCR providers
 

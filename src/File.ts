@@ -15,12 +15,8 @@ export default class File {
 
 	static fromVaultRelativePath(path: string): File {
 		const extension = path.split(".").pop();
-		if (!extension) {
-			throw new TypeError(`Unable to process file ${path} because it has no extensions`);
-		}
-		if (extension == "json") {
-			return new File(extension, path, (app.vault.adapter as FileSystemAdapter).getFullPath(path), app.vault.getAbstractFileByPath(path) as TFile, undefined, undefined);
-		}
+		if (!extension) throw new TypeError(`Unable to process file ${path} because it has no extensions`);
+		if (extension == "json") return new File(extension, path, (app.vault.adapter as FileSystemAdapter).getFullPath(path), app.vault.getAbstractFileByPath(path) as TFile, undefined, undefined);
 		return new File(extension, path, (app.vault.adapter as FileSystemAdapter).getFullPath(path), app.vault.getAbstractFileByPath(path) as TFile, File.fromVaultRelativePath(filePathToJsonPath(path)), undefined);
 	}
 

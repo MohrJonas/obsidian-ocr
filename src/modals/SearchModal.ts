@@ -6,6 +6,7 @@ import SettingsManager from "../Settings";
 import {STATUS, StatusBar} from "../StatusBar";
 import {flattenText} from "../utils/HocrUtils";
 import TranscriptCache from "../TranscriptCache";
+import ImageModal from "./ImageModal";
 
 export default class SearchModal extends SuggestModal<Page> {
 
@@ -81,6 +82,10 @@ export default class SearchModal extends SuggestModal<Page> {
 		const image = leftColDiv.createEl("img");
 		image.src = `data:image/png;base64, ${page.thumbnail}`;
 		image.id = "suggestion-thumbnail";
+		image.onclick = (event) => {
+			event.stopImmediatePropagation();
+			new ImageModal(page.thumbnail).open();
+		};
 	}
 
 	async onChooseSuggestion(page: Page) {

@@ -44,10 +44,11 @@
     "globby": "^13.1.2",
     "json-complete": "^2.0.1",
     "normalize-path": "^3.0.0",
+    "npm-check-updates": "^16.3.16",
     "pdf-lib": "^1.17.1",
     "randomstring": "^1.2.3",
     "sudo-prompt": "^9.2.1",
-    "which": "^2.0.2",
+    "which": "^3.0.0",
     "xterm": "^5.0.0",
     "xterm-addon-fit": "^0.6.0"
   }

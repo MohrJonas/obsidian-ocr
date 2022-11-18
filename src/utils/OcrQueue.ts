@@ -1,12 +1,11 @@
 import async, {QueueObject} from "async";
 import {StatusBar} from "../StatusBar";
-import TranscriptCache from "../TranscriptCache";
 import File from "../File";
 import SettingsManager from "../Settings";
 import {processFile} from "./FileOps";
-import Transcript from "../hocr/Transcript";
-import {isFileOCRable} from "./FileUtils";
-import { clearTimeout, setTimeout } from "timers";
+import {clearTimeout, setTimeout} from "timers";
+import DBManager from "../DBManager";
+import Page from "../hocr/Page";
 
 
 export class OcrQueue {
@@ -18,8 +17,9 @@ export class OcrQueue {
 		this.ocrQueue = this.ocrQueue || async.queue(async function (file, callback) {
 			const transcript = await processFile(file);
 			if (!transcript) return;
-			TranscriptCache.add(transcript);
-			app.vault.create(file.jsonFile.vaultRelativePath, Transcript.encode(transcript));
+			DBManager.insertTranscript(file.vaultRelativePath, transcript.children as Array<Page>);
+			//TranscriptCache.add(transcript);
+			//app.vault.create(file.jsonFile.vaultRelativePath, Transcript.encode(transcript));
 			StatusBar.removeIndexingFile(file);
 			callback();
 		}, SettingsManager.currentSettings.concurrentIndexingProcesses);
@@ -27,7 +27,6 @@ export class OcrQueue {
 	}
 
 	public static async enqueueFile(file: File) {
-		if (!await isFileOCRable(file)) return;
 		this.getQueue().push(file);
 		StatusBar.addIndexingFile(file);
 	}

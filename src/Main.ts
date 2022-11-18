@@ -1,4 +1,3 @@
-import {existsSync} from "fs";
 import {Notice, Plugin, TFile, TFolder} from "obsidian";
 import {STATUS, StatusBar} from "./StatusBar";
 import {SettingsTab} from "./SettingsTab";
@@ -6,10 +5,7 @@ import SettingsManager from "./Settings";
 import OCRProviderManager from "./ocr/OCRProviderManager";
 import NoOpOCRProvider from "./ocr/providers/NoOpOCRProvider";
 import TesseractOCRProvider from "./ocr/providers/TesseractOCRProvider";
-import TranscriptCache from "./TranscriptCache";
-import {rename, unlink, writeFile} from "fs/promises";
 import File from "./File";
-import Transcript from "./hocr/Transcript";
 import {processVault, removeAllJsonFiles} from "./utils/FileOps";
 import SearchModal from "./modals/SearchModal";
 import {areDepsMet} from "./Convert";
@@ -19,6 +15,8 @@ import InstallationProviderManager from "./utils/installation/InstallationProvid
 import WindowsInstallationProvider from "./utils/installation/WindowsInstallationProvider";
 import DebInstallationProvider from "./utils/installation/DebInstallationProvider";
 import Tips from "./Tips";
+import DBManager from "./DBManager";
+import {isFileOCRable} from "./utils/FileUtils";
 
 export default class ObsidianOCRPlugin extends Plugin {
 
@@ -35,52 +33,57 @@ export default class ObsidianOCRPlugin extends Plugin {
 		await OCRProviderManager.applyHomebrewWorkaround();
 		InstallationProviderManager.registerProviders(new WindowsInstallationProvider(), new DebInstallationProvider());
 		OCRProviderManager.registerOCRProviders(new NoOpOCRProvider(), new TesseractOCRProvider());
+		await DBManager.init();
 		this.registerEvent(this.app.vault.on("create", async (tFile) => {
 			if (tFile instanceof TFolder) return;
 			const file = File.fromFile(tFile as TFile);
+			if (!isFileOCRable(file)) return;
+			console.log(file);
 			OcrQueue.enqueueFile(file);
 		}));
 		this.registerEvent(this.app.vault.on("delete", async (tFile) => {
-			if (tFile instanceof TFolder) {
-				TranscriptCache.rebuildCache();
-				return;
-			}
+			//if (tFile instanceof TFolder) {
+			//	TranscriptCache.rebuildCache();
+			//	return;
+			//}
 			const file = File.fromFile(tFile as TFile);
-			if (file.jsonFile && existsSync(file.jsonFile.absPath)) {
-				TranscriptCache.remove(await Transcript.load(file.jsonFile.absPath));
-				unlink(file.jsonFile.absPath);
-			}
+			await DBManager.removeTranscriptByPath(file.vaultRelativePath);
+			//if (file.jsonFile && existsSync(file.jsonFile.absPath)) {
+			//	TranscriptCache.remove(await Transcript.load(file.jsonFile.absPath));
+			//	unlink(file.jsonFile.absPath);
+			//}
 		}));
 		this.registerEvent(this.app.vault.on("rename", async (file, oldPath) => {
-			const oldFile = File.fromVaultRelativePath(oldPath);
 			const newFile = File.fromFile(file as TFile);
-			if (!oldFile.jsonFile) return;
-			const transcript = TranscriptCache.filter((transcript) => {
-				return transcript.originalFilePath == oldFile.vaultRelativePath;
-			})[0];
-			transcript.originalFilePath = newFile.vaultRelativePath;
-			await rename(oldFile.jsonFile.absPath, newFile.jsonFile.absPath);
-			writeFile(newFile.jsonFile.absPath, Transcript.encode(transcript));
+			await DBManager.updateTranscriptPath(oldPath, newFile.vaultRelativePath);
+			//if (!oldFile.jsonFile) return;
+			//const transcript = TranscriptCache.filter((transcript) => {
+			//	return transcript.originalFilePath == oldFile.vaultRelativePath;
+			//})[0];
+			//transcript.originalFilePath = newFile.vaultRelativePath;
+			//await rename(oldFile.jsonFile.absPath, newFile.jsonFile.absPath);
+			//writeFile(newFile.jsonFile.absPath, Transcript.encode(transcript));
 		}));
 		this.app.workspace.onLayoutReady(async () => {
-			if(SettingsManager.currentSettings.showTips) Tips.showRandomTip();
+			if (SettingsManager.currentSettings.showTips) Tips.showRandomTip();
 			if (!await areDepsMet()) new Notice("Dependecies aren't met");
 			if (SettingsManager.currentSettings.ocrProviderName == "NoOp") new Notice("Don't forget to select an OCR Provider in the settings.");
-			TranscriptCache.populate();
-			processVault();
+			//TranscriptCache.populate();
+			//processVault();
 		});
 		this.app.workspace.on("quit", () => {
 			ObsidianOCRPlugin.children.forEach((child) => {
 				child.kill();
+				DBManager.dispose();
 			});
 		});
 		this.addSettingTab(new SettingsTab(this.app, this));
 		this.addRibbonIcon("magnifying-glass", "Search OCR", () => {
-			SearchModal.open();
+			new SearchModal().open();
 		});
 		this.addCommand({
 			id: "search-ocr", name: "Search OCR", callback: () => {
-				SearchModal.open();
+				new SearchModal().open();
 			}
 		});
 		this.addCommand({

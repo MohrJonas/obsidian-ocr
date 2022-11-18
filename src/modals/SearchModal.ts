@@ -1,23 +1,16 @@
-import {Notice, Setting, SuggestModal, TFile} from "obsidian";
+import {Setting, SuggestModal, TFile} from "obsidian";
 import * as fuzzy from "fuzzy";
-import Page from "../hocr/Page";
-import Transcript from "../hocr/Transcript";
 import SettingsManager from "../Settings";
 import {STATUS, StatusBar} from "../StatusBar";
-import {flattenText} from "../utils/HocrUtils";
-import TranscriptCache from "../TranscriptCache";
 import ImageModal from "./ImageModal";
+import DBManager, {SQLResultPage} from "../DBManager";
 
-export default class SearchModal extends SuggestModal<Page> {
+export default class SearchModal extends SuggestModal<SQLResultPage> {
 
 	private query: string;
-	private pages: Array<Page>;
 
-	constructor(transcripts: Array<Transcript>) {
+	constructor() {
 		super(app);
-		this.pages = transcripts.map((transcript) => {
-			return transcript.children;
-		}).flat();
 		if (StatusBar.hasStatus(STATUS.CACHING)) {
 			this.modalEl.createEl("strong", {text: "Search results are incomplete while caching"}).id = "suggestion-indexing-warning";
 		}
@@ -25,7 +18,7 @@ export default class SearchModal extends SuggestModal<Page> {
 			.setName("Fuzzy search")
 			.setDesc("Enable or disable fuzzy search")
 			.addToggle((tc) => {
-				tc.setValue(SettingsManager.currentSettings.fuzzySearch );
+				tc.setValue(SettingsManager.currentSettings.fuzzySearch);
 				tc.onChange(async (value) => {
 					SettingsManager.currentSettings.fuzzySearch = value;
 					await SettingsManager.saveSettings();
@@ -45,40 +38,37 @@ export default class SearchModal extends SuggestModal<Page> {
 			});
 	}
 
-	static open() {
-		new SearchModal(TranscriptCache.getAll()).open();
-	}
-
-	getSuggestions(query: string): Page[] | Promise<Page[]> {
+	getSuggestions(query: string): SQLResultPage[] | Promise<SQLResultPage[]> {
 		this.query = query;
 		if (!query || query.length < 3) return [];
+		const pages = DBManager.getAllPages();
 		if (SettingsManager.currentSettings.fuzzySearch) {
-			return fuzzy.filter(query, this.pages, {
-				extract: (page: Page) => {
-					return flattenText(page);
+			return fuzzy.filter(query, pages, {
+				extract: (page: SQLResultPage) => {
+					return page.transcriptText;
 				}
 			}).map((score) => {
 				return score.original;
 			});
 		} else {
-			return this.pages.filter((page) => {
+			return pages.filter((page) => {
 				if (SettingsManager.currentSettings.caseSensitive)
-					return flattenText(page).includes(query);
+					return page.transcriptText.includes(query);
 				else
-					return flattenText(page).toLowerCase().includes(query.toLowerCase());
+					return page.transcriptText.toLowerCase().includes(query.toLowerCase());
 			});
 		}
 	}
 
-	renderSuggestion(page: Page, el: HTMLElement) {
+	renderSuggestion(page: SQLResultPage, el: HTMLElement) {
 		el.style.display = "flex";
 		el.style.maxHeight = "150px";
 		const leftColDiv = el.createEl("div", {cls: "suggestion-col"});
 		leftColDiv.id = "left-col";
 		const rightColDiv = el.createEl("div", {cls: "suggestion-col"});
 		rightColDiv.id = "right-col";
-		rightColDiv.createEl("h6", {text: `${page.parent.originalFilePath}, Page ${page.pageNumber + 1}`}).id = "suggestion-heading";
-		rightColDiv.createEl("p", {text: flattenText(page)}).id = "suggestion-text-preview";
+		rightColDiv.createEl("h6", {text: `${DBManager.getTranscriptById(page.transcriptId).relativePath}, Page ${page.pageNumber + 1}`}).id = "suggestion-heading";
+		rightColDiv.createEl("p", {text: page.transcriptText}).id = "suggestion-text-preview";
 		const image = leftColDiv.createEl("img");
 		image.src = `data:image/png;base64, ${page.thumbnail}`;
 		image.id = "suggestion-thumbnail";
@@ -88,13 +78,8 @@ export default class SearchModal extends SuggestModal<Page> {
 		};
 	}
 
-	async onChooseSuggestion(page: Page) {
-		const file = this.app.vault.getAbstractFileByPath(page.parent.originalFilePath);
-		if (!file) {
-			new Notice(`Unable to open file ${page.parent.originalFilePath}. Does it exist?`);
-			return;
-		}
-		await this.app.workspace.getLeaf(false).openFile(this.app.vault.getAbstractFileByPath(page.parent.originalFilePath) as TFile, {
+	async onChooseSuggestion(page: SQLResultPage) {
+		await this.app.workspace.getLeaf(false).openFile(this.app.vault.getAbstractFileByPath(DBManager.getTranscriptById(page.transcriptId).relativePath) as TFile, {
 			eState: {
 				subpath: `#page=${page.pageNumber + 1}`
 			}

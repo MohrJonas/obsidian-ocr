@@ -5,6 +5,7 @@ import {existsSync} from "fs";
 import {globby} from "globby";
 import normalizePath from "normalize-path";
 import {FileSystemAdapter} from "obsidian";
+import DBManager from "../DBManager";
 
 /**
  * Convert a path to a file to the path of the associated json file
@@ -24,7 +25,7 @@ export function filePathToAnnotationPath(filePath: string): string {
  * @param file the file to check
  * @returns true if the file is valid, otherwise false
  */
-export async function isFileValid(file: File): Promise<boolean> {
+export function isFileValid(file: File): boolean {
 	if (["png", "jpg", "jpeg"].contains(file.extension))
 		return SettingsManager.currentSettings.ocrImage;
 	if (file.extension == "pdf")
@@ -68,6 +69,6 @@ export async function getAllJsonFiles(): Promise<Array<File>> {
  * @param file
  * @returns boolean
  */
-export async function isFileOCRable(file: File): Promise<boolean> {
-	return (file.jsonFile != undefined && !existsSync(file.jsonFile.absPath) && (await isFileValid(file)));
+export function isFileOCRable(file: File): boolean {
+	return !DBManager.doesTranscriptWithPathExist(file.vaultRelativePath) && isFileValid(file);
 }

@@ -6,13 +6,13 @@ import Line from "./Line";
 export default class Paragraph implements HocrElement {
 
 	public readonly bounds: BoundingBox;
-	public readonly children: Array<Line>;
+	public readonly children: Array<HocrElement>;
 
-	constructor(public parent: ContentArea, parP: HTMLParagraphElement) {
+	constructor(parP: HTMLParagraphElement) {
 		this.bounds = BoundingBox.fromTitle(parP.title);
 		this.children = Array.from(parP.getElementsByClassName("ocr_line"))
 			.map((ocrLine) => {
-				return new Line(this, ocrLine as HTMLSpanElement);
+				return new Line(ocrLine as HTMLSpanElement);
 			});
 	}
 }

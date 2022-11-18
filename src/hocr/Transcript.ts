@@ -8,10 +8,9 @@ import {readFile} from "fs/promises";
 
 export default class Transcript implements HocrElement {
 
-	public readonly parent: undefined = undefined;
 	public readonly bounds: undefined = undefined;
 	public readonly capabilities: Array<string>;
-	public readonly children: Array<Page>;
+	public readonly children: Array<HocrElement>;
 
 	constructor(public readonly ocrVersion: string, public originalFilePath: string, documents: Array<Document>, imagePaths: Array<string>) {
 		if (!documents) return;
@@ -26,7 +25,7 @@ export default class Transcript implements HocrElement {
 		this.children = documents.map((document, index) => {
 			return Array.from(document.getElementsByClassName("ocr_page"))
 				.map((pageDiv) => {
-					return new Page(this, pageDiv as HTMLDivElement, new Buffer(readFileSync(imagePaths[index])).toString("base64"), index);
+					return new Page(pageDiv as HTMLDivElement, new Buffer(readFileSync(imagePaths[index])).toString("base64"), index);
 				});
 		}).flat();
 	}

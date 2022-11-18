@@ -1,15 +1,8 @@
 import BoundingBox from "./BoundingBox";
-import ContentArea from "./ContentArea";
-import Paragraph from "./Paragraph";
-import Word from "./Word";
-import Transcript from "./Transcript";
-import Page from "./Page";
-import Line from "./Line";
 
 interface HocrElement {
-	bounds: BoundingBox | undefined;
-	parent: ContentArea | Line | Page | Paragraph | Word | Transcript | undefined;
-	children: Array<ContentArea | Line | Page | Paragraph | Word | Transcript> | undefined;
+    bounds: BoundingBox | undefined;
+    children: Array<HocrElement> | undefined;
 }
 
 export default HocrElement;

@@ -15,6 +15,7 @@ interface Settings {
 	quality: number;
 	additionalImagemagickArgs: string;
 	showTips: boolean;
+	logToFile: boolean;
 }
 
 export default abstract class SettingsManager {
@@ -35,7 +36,8 @@ export default abstract class SettingsManager {
 		density: 300,
 		quality: 98,
 		additionalImagemagickArgs: "",
-		showTips: true
+		showTips: true,
+		logToFile: false
 	};
 
 	static async loadSettings(plugin: Plugin) {

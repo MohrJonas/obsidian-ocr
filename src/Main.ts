@@ -1,4 +1,4 @@
-import {Notice, Plugin, TFile, TFolder} from "obsidian";
+import {FileSystemAdapter, Notice, Plugin, TFile, TFolder} from "obsidian";
 import {STATUS, StatusBar} from "./StatusBar";
 import {SettingsTab} from "./SettingsTab";
 import SettingsManager from "./Settings";
@@ -15,11 +15,15 @@ import InstallationProviderManager from "./utils/installation/InstallationProvid
 import WindowsInstallationProvider from "./utils/installation/WindowsInstallationProvider";
 import DebInstallationProvider from "./utils/installation/DebInstallationProvider";
 import Tips from "./Tips";
-import DBManager from "./DBManager";
+import DBManager from "./db/DBManager";
 import {isFileOCRable} from "./utils/FileUtils";
+import SimpleLogger, {createSimpleFileLogger, createSimpleLogger} from "simple-node-logger";
+import {join} from "path";
+import SettingsModal from "./modals/SettingsModal";
 
 export default class ObsidianOCRPlugin extends Plugin {
 
+	public static logger: SimpleLogger.Logger;
 	public static plugin: Plugin;
 	public static children: Array<ChildProcess> = [];
 
@@ -28,6 +32,10 @@ export default class ObsidianOCRPlugin extends Plugin {
     */
 	override async onload() {
 		await SettingsManager.loadSettings(this);
+		ObsidianOCRPlugin.logger = SettingsManager.currentSettings.logToFile
+			? createSimpleFileLogger(join((app.vault.adapter as FileSystemAdapter).getBasePath(), "obsidian-ocr.log"))
+			: createSimpleLogger();
+		ObsidianOCRPlugin.logger.setLevel("all");
 		ObsidianOCRPlugin.plugin = this;
 		OCRProviderManager.addAdditionalPaths();
 		await OCRProviderManager.applyHomebrewWorkaround();
@@ -38,31 +46,15 @@ export default class ObsidianOCRPlugin extends Plugin {
 			if (tFile instanceof TFolder) return;
 			const file = File.fromFile(tFile as TFile);
 			if (!isFileOCRable(file)) return;
-			console.log(file);
 			OcrQueue.enqueueFile(file);
 		}));
 		this.registerEvent(this.app.vault.on("delete", async (tFile) => {
-			//if (tFile instanceof TFolder) {
-			//	TranscriptCache.rebuildCache();
-			//	return;
-			//}
 			const file = File.fromFile(tFile as TFile);
 			await DBManager.removeTranscriptByPath(file.vaultRelativePath);
-			//if (file.jsonFile && existsSync(file.jsonFile.absPath)) {
-			//	TranscriptCache.remove(await Transcript.load(file.jsonFile.absPath));
-			//	unlink(file.jsonFile.absPath);
-			//}
 		}));
 		this.registerEvent(this.app.vault.on("rename", async (file, oldPath) => {
 			const newFile = File.fromFile(file as TFile);
 			await DBManager.updateTranscriptPath(oldPath, newFile.vaultRelativePath);
-			//if (!oldFile.jsonFile) return;
-			//const transcript = TranscriptCache.filter((transcript) => {
-			//	return transcript.originalFilePath == oldFile.vaultRelativePath;
-			//})[0];
-			//transcript.originalFilePath = newFile.vaultRelativePath;
-			//await rename(oldFile.jsonFile.absPath, newFile.jsonFile.absPath);
-			//writeFile(newFile.jsonFile.absPath, Transcript.encode(transcript));
 		}));
 		this.app.workspace.onLayoutReady(async () => {
 			if (SettingsManager.currentSettings.showTips) Tips.showRandomTip();
@@ -77,6 +69,18 @@ export default class ObsidianOCRPlugin extends Plugin {
 				DBManager.dispose();
 			});
 		});
+		this.registerEvent(
+			this.app.workspace.on("file-menu", (menu, file) => {
+				if (file instanceof TFolder || !["png", "pdf", "jpg", "jpeg"].contains((file as TFile).extension)) return;
+				menu.addItem((item) => {
+					item.setTitle("Custom OCR settings")
+						.setIcon("note-glyph")
+						.onClick(() => {
+							new SettingsModal(file.path).open();
+						});
+				});
+			})
+		);
 		this.addSettingTab(new SettingsTab(this.app, this));
 		this.addRibbonIcon("magnifying-glass", "Search OCR", () => {
 			new SearchModal().open();

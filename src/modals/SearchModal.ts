@@ -3,11 +3,13 @@ import * as fuzzy from "fuzzy";
 import SettingsManager from "../Settings";
 import {STATUS, StatusBar} from "../StatusBar";
 import ImageModal from "./ImageModal";
-import DBManager, {SQLResultPage} from "../DBManager";
+import DBManager from "../db/DBManager";
+import {SQLResultPage} from "../db/SQLResultPage";
 
 export default class SearchModal extends SuggestModal<SQLResultPage> {
 
 	private query: string;
+	private pages: Array<SQLResultPage>;
 
 	constructor() {
 		super(app);
@@ -41,9 +43,9 @@ export default class SearchModal extends SuggestModal<SQLResultPage> {
 	getSuggestions(query: string): SQLResultPage[] | Promise<SQLResultPage[]> {
 		this.query = query;
 		if (!query || query.length < 3) return [];
-		const pages = DBManager.getAllPages();
+		if(!this.pages) this.pages = DBManager.getAllPages();
 		if (SettingsManager.currentSettings.fuzzySearch) {
-			return fuzzy.filter(query, pages, {
+			return fuzzy.filter(query, this.pages, {
 				extract: (page: SQLResultPage) => {
 					return page.transcriptText;
 				}
@@ -51,7 +53,7 @@ export default class SearchModal extends SuggestModal<SQLResultPage> {
 				return score.original;
 			});
 		} else {
-			return pages.filter((page) => {
+			return this.pages.filter((page) => {
 				if (SettingsManager.currentSettings.caseSensitive)
 					return page.transcriptText.includes(query);
 				else
@@ -67,7 +69,7 @@ export default class SearchModal extends SuggestModal<SQLResultPage> {
 		leftColDiv.id = "left-col";
 		const rightColDiv = el.createEl("div", {cls: "suggestion-col"});
 		rightColDiv.id = "right-col";
-		rightColDiv.createEl("h6", {text: `${DBManager.getTranscriptById(page.transcriptId).relativePath}, Page ${page.pageNumber + 1}`}).id = "suggestion-heading";
+		rightColDiv.createEl("h6", {text: `${DBManager.getTranscriptById(page.transcriptId).relativePath}, Page ${page.pageNum + 1}`}).id = "suggestion-heading";
 		rightColDiv.createEl("p", {text: page.transcriptText}).id = "suggestion-text-preview";
 		const image = leftColDiv.createEl("img");
 		image.src = `data:image/png;base64, ${page.thumbnail}`;
@@ -81,7 +83,7 @@ export default class SearchModal extends SuggestModal<SQLResultPage> {
 	async onChooseSuggestion(page: SQLResultPage) {
 		await this.app.workspace.getLeaf(false).openFile(this.app.vault.getAbstractFileByPath(DBManager.getTranscriptById(page.transcriptId).relativePath) as TFile, {
 			eState: {
-				subpath: `#page=${page.pageNumber + 1}`
+				subpath: `#page=${page.pageNum + 1}`
 			}
 		});
 	}

@@ -108,6 +108,13 @@ export class SettingsTab extends PluginSettingTab {
 				await SettingsManager.saveSettings();
 			});
 		}).setName("Show tips").setDesc("Whether to show a tip at startup");
+		new Setting(this.containerEl).addToggle((tc) => {
+			tc.setValue(SettingsManager.currentSettings.logToFile);
+			tc.onChange(async (value) => {
+				SettingsManager.currentSettings.logToFile = value;
+				await SettingsManager.saveSettings();
+			});
+		}).setName("Log to file").setDesc("Log to a file in your vault. Useful for debugging");
 		let providerDiv: HTMLDivElement;
 		new Setting(this.containerEl).addDropdown(async (dd) => {
 			OCRProviderManager.ocrProviders

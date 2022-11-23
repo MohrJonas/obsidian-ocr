@@ -4,7 +4,7 @@ import File from "../File";
 import SettingsManager from "../Settings";
 import {processFile} from "./FileOps";
 import {clearTimeout, setTimeout} from "timers";
-import DBManager from "../DBManager";
+import DBManager from "../db/DBManager";
 import Page from "../hocr/Page";
 
 

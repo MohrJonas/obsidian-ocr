@@ -5,6 +5,10 @@ import {globby} from "globby";
 import normalizePath from "normalize-path";
 import {FileSystemAdapter} from "obsidian";
 import DBManager from "../db/DBManager";
+import {unlink} from "fs/promises";
+import Transcript from "../hocr/Transcript";
+import Page from "../hocr/Page";
+import ObsidianOCRPlugin from "../Main";
 
 /**
  * Convert a path to a file to the path of the associated json file
@@ -70,4 +74,14 @@ export async function getAllJsonFiles(): Promise<Array<File>> {
  */
 export function isFileOCRable(file: File): boolean {
 	return isFileValid(file) && !DBManager.doesTranscriptWithPathExist(file.vaultRelativePath);
+}
+
+/**
+ * Migrate a file from the old json format to the new sqlite database
+ * @param file The json file to migrate
+ * */
+export async function migrateToDB(file: File) {
+	ObsidianOCRPlugin.logger.info(`Migrating file ${file.vaultRelativePath} to DB`);
+	await DBManager.insertTranscript(file.vaultRelativePath, (await Transcript.load(file.absPath)).children as Array<Page>);
+	await unlink(file.absPath);
 }

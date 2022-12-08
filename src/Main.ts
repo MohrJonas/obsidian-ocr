@@ -16,7 +16,7 @@ import WindowsInstallationProvider from "./utils/installation/WindowsInstallatio
 import DebInstallationProvider from "./utils/installation/DebInstallationProvider";
 import Tips from "./Tips";
 import DBManager from "./db/DBManager";
-import {isFileOCRable} from "./utils/FileUtils";
+import {getAllJsonFiles, isFileOCRable, migrateToDB} from "./utils/FileUtils";
 import SimpleLogger, {createSimpleFileLogger, createSimpleLogger} from "simple-node-logger";
 import {join} from "path";
 import SettingsModal from "./modals/SettingsModal";
@@ -59,19 +59,22 @@ export default class ObsidianOCRPlugin extends Plugin {
 		this.app.workspace.onLayoutReady(async () => {
 			if (SettingsManager.currentSettings.showTips) Tips.showRandomTip();
 			if (!await areDepsMet()) new Notice("Dependecies aren't met");
-			if (SettingsManager.currentSettings.ocrProviderName == "NoOp") new Notice("Don't forget to select an OCR Provider in the settings.");
+			if (SettingsManager.currentSettings.ocrProviderName == "NoOp")
+                new Notice("Don't forget to select an OCR Provider in the settings.");
+			(await getAllJsonFiles()).forEach((file) => { migrateToDB(file); });
 			//TranscriptCache.populate();
 			//processVault();
 		});
 		this.app.workspace.on("quit", () => {
 			ObsidianOCRPlugin.children.forEach((child) => {
 				child.kill();
-				DBManager.dispose();
 			});
+            DBManager.dispose();
 		});
 		this.registerEvent(
 			this.app.workspace.on("file-menu", (menu, file) => {
-				if (file instanceof TFolder || !["png", "pdf", "jpg", "jpeg"].contains((file as TFile).extension)) return;
+				if (file instanceof TFolder || !["png", "pdf", "jpg", "jpeg"].contains((file as TFile).extension) || !DBManager.doesTranscriptWithPathExist((file as TFile).path))
+                    return;
 				menu.addItem((item) => {
 					item.setTitle("Custom OCR settings")
 						.setIcon("note-glyph")

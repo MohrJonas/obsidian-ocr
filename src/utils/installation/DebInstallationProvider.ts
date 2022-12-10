@@ -15,7 +15,7 @@ export default class DebInstallationProvider implements InstallationProvider {
 				terminal.writeln(ansiColors.red(error.message));
 				return;
 			}
-			terminal.writeln(ansiColors.green("Done. Restart obsidian for changed to take effect"));
+			terminal.writeln(ansiColors.green("Done. Restart obsidian for changes to take effect"));
 		});
 	}
 

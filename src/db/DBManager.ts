@@ -227,7 +227,8 @@ export default class DBManager {
 	 * */
 	static resetDB() {
 		ObsidianOCRPlugin.logger.debug("Resetting DB");
-		DBManager.DB.run("DROP TABLE *");
+		DBManager.DB.run("DROP TABLE IF EXISTS pages");
+		DBManager.DB.run("DROP TABLE IF EXISTS transcripts");
 	}
 
 	/**
@@ -248,17 +249,17 @@ export default class DBManager {
 	/**
 	 * Init the database by creating all tables
 	 * */
-	private static async initDB() {
+	static async initDB() {
 		ObsidianOCRPlugin.logger.debug("Initializing DB");
 		DBManager.DB.exec(`
-            CREATE TABLE transcripts
+            CREATE TABLE IF NOT EXISTS transcripts
             (
                 transcript_id integer PRIMARY KEY AUTOINCREMENT,
                 relative_path text,
                 num_pages     integer
             );
 
-            CREATE TABLE pages
+            CREATE TABLE IF NOT EXISTS pages
             (
                 page_id         integer PRIMARY KEY AUTOINCREMENT,
                 transcript_id   integer,
@@ -268,7 +269,7 @@ export default class DBManager {
                 FOREIGN KEY (transcript_id) REFERENCES transcripts (transcript_id) ON DELETE CASCADE
             );
 
-            CREATE TABLE settings
+            CREATE TABLE IF NOT EXISTS settings
             (
                 settings_id      integer PRIMARY KEY AUTOINCREMENT,
                 transcript_id    integer,

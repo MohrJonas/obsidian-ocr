@@ -69,6 +69,7 @@ export default class TesseractOCRProvider implements OCRProvider {
 	}
 
 	async performOCRSingle(source: string): Promise<{ exitcode: number, text: string }> {
+		ObsidianOCRPlugin.logger.info(`Performing OCR on ${source} with Tesseract`);
 		const execReturn = exec(`tesseract ${this.settings.additionalArguments} "${source}" stdout -l ${this.settings.lang} hocr`);
 		ObsidianOCRPlugin.children.push(execReturn.execProcess);
 		const result = await execReturn.execPromise;

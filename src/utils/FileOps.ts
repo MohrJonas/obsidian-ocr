@@ -61,8 +61,8 @@ export function processVault() {
 		.map((tFile) => {
 			return File.fromFile(tFile);
 		})
-		.filter(async (file) => {
-			return await isFileValid(file) && await isFileOCRable(file);
+		.filter((file) => {
+			return isFileValid(file) && isFileOCRable(file);
 		})
 		.forEach(async (file) => {
 			await OcrQueue.enqueueFile(file);

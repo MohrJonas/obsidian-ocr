@@ -6,7 +6,7 @@ import OCRProviderManager from "./ocr/OCRProviderManager";
 import NoOpOCRProvider from "./ocr/providers/NoOpOCRProvider";
 import TesseractOCRProvider from "./ocr/providers/TesseractOCRProvider";
 import File from "./File";
-import {processVault, removeAllJsonFiles} from "./utils/FileOps";
+import {processVault} from "./utils/FileOps";
 import SearchModal from "./modals/SearchModal";
 import {areDepsMet} from "./Convert";
 import {OcrQueue} from "./utils/OcrQueue";
@@ -46,7 +46,10 @@ export default class ObsidianOCRPlugin extends Plugin {
 			if (tFile instanceof TFolder) return;
 			const file = File.fromFile(tFile as TFile);
 			if (!isFileOCRable(file)) return;
-			OcrQueue.enqueueFile(file);
+			if(file.jsonFile)
+				await migrateToDB(file);
+			else
+				OcrQueue.enqueueFile(file);
 		}));
 		this.registerEvent(this.app.vault.on("delete", async (tFile) => {
 			const file = File.fromFile(tFile as TFile);
@@ -60,21 +63,22 @@ export default class ObsidianOCRPlugin extends Plugin {
 			if (SettingsManager.currentSettings.showTips) Tips.showRandomTip();
 			if (!await areDepsMet()) new Notice("Dependecies aren't met");
 			if (SettingsManager.currentSettings.ocrProviderName == "NoOp")
-                new Notice("Don't forget to select an OCR Provider in the settings.");
-			(await getAllJsonFiles()).forEach((file) => { migrateToDB(file); });
-			//TranscriptCache.populate();
-			//processVault();
+				new Notice("Don't forget to select an OCR Provider in the settings.");
+			(await getAllJsonFiles()).forEach((file) => {
+				migrateToDB(file);
+			});
+			processVault();
 		});
 		this.app.workspace.on("quit", () => {
 			ObsidianOCRPlugin.children.forEach((child) => {
 				child.kill();
 			});
-            DBManager.dispose();
+			DBManager.dispose();
 		});
 		this.registerEvent(
 			this.app.workspace.on("file-menu", (menu, file) => {
 				if (file instanceof TFolder || !["png", "pdf", "jpg", "jpeg"].contains((file as TFile).extension) || !DBManager.doesTranscriptWithPathExist((file as TFile).path))
-                    return;
+					return;
 				menu.addItem((item) => {
 					item.setTitle("Custom OCR settings")
 						.setIcon("note-glyph")
@@ -102,7 +106,8 @@ export default class ObsidianOCRPlugin extends Plugin {
 				else if (StatusBar.hasStatus(STATUS.INDEXING))
 					new Notice("Deleting is not available while indexing");
 				else {
-					await removeAllJsonFiles();
+					DBManager.resetDB();
+					await DBManager.initDB();
 					processVault();
 				}
 			},

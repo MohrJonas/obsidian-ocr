@@ -19,6 +19,10 @@ export function filePathToJsonPath(filePath: string): string {
 	return join(dirname(filePath), `.${basename(filePath)}.ocr.json`);
 }
 
+export function stripJsonSuffix(filePath: string): string {
+	return filePath.replace(".ocr.json", "");
+}
+
 export function filePathToAnnotationPath(filePath: string): string {
 	return join(dirname(filePath), `.${basename(filePath)}.ocr`);
 }
@@ -82,6 +86,6 @@ export function isFileOCRable(file: File): boolean {
  * */
 export async function migrateToDB(file: File) {
 	ObsidianOCRPlugin.logger.info(`Migrating file ${file.vaultRelativePath} to DB`);
-	await DBManager.insertTranscript(file.vaultRelativePath, (await Transcript.load(file.absPath)).children as Array<Page>);
+	await DBManager.insertTranscript(stripJsonSuffix(file.vaultRelativePath), (await Transcript.load(file.absPath)).children as Array<Page>);
 	await unlink(file.absPath);
 }

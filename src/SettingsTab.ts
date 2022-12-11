@@ -100,6 +100,9 @@ export class SettingsTab extends PluginSettingTab {
 					modal.open();
 					installationProvider.installDependencies(modal.terminal);
 				}
+				else {
+					new Notice("Automatic installation not yet implemented for this platform");
+				}
 			});
 		});
 		new Setting(this.containerEl).addToggle((tc) => {

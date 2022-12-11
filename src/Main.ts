@@ -16,7 +16,7 @@ import WindowsInstallationProvider from "./utils/installation/WindowsInstallatio
 import DebInstallationProvider from "./utils/installation/DebInstallationProvider";
 import Tips from "./Tips";
 import DBManager from "./db/DBManager";
-import {getAllJsonFiles, isFileOCRable, migrateToDB} from "./utils/FileUtils";
+import {getAllJsonFiles, isFileOCRable, isFileValid, migrateToDB} from "./utils/FileUtils";
 import SimpleLogger, {createSimpleFileLogger, createSimpleLogger, STANDARD_LEVELS} from "simple-node-logger";
 import {join} from "path";
 import SettingsModal from "./modals/SettingsModal";
@@ -53,17 +53,16 @@ export default class ObsidianOCRPlugin extends Plugin {
 		}));
 		this.registerEvent(this.app.vault.on("delete", async (tFile) => {
 			const file = File.fromFile(tFile as TFile);
+			if(!isFileValid(file)) return;
 			ObsidianOCRPlugin.logger.info(`Deleting transcript with path ${file.vaultRelativePath}`);
 			const transcript = DBManager.getTranscriptByPath(file.vaultRelativePath);
-			if(!transcript) {
-				ObsidianOCRPlugin.logger.warn(`Attempting to delete a non-existent transcript with path ${file.vaultRelativePath}`);
-				return;
-			}
+			if(!transcript) return;
 			await DBManager.removeSettingsByTranscriptId(transcript.transcriptId);
 			await DBManager.removeTranscriptByPath(transcript.relativePath);
 		}));
 		this.registerEvent(this.app.vault.on("rename", async (file, oldPath) => {
 			const newFile = File.fromFile(file as TFile);
+			if(!isFileOCRable(newFile)) return;
 			await DBManager.updateTranscriptPath(oldPath, newFile.vaultRelativePath);
 		}));
 		this.app.workspace.onLayoutReady(async () => {

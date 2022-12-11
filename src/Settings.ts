@@ -1,5 +1,6 @@
 import {Plugin} from "obsidian";
 import OCRProvider from "./ocr/OCRProvider";
+import SimpleLogger from "simple-node-logger";
 
 interface Settings {
 	ocrProviderName: string;
@@ -16,6 +17,7 @@ interface Settings {
 	additionalImagemagickArgs: string;
 	showTips: boolean;
 	logToFile: boolean;
+	logLevel: SimpleLogger.STANDARD_LEVELS;
 }
 
 export default abstract class SettingsManager {
@@ -37,7 +39,8 @@ export default abstract class SettingsManager {
 		quality: 98,
 		additionalImagemagickArgs: "",
 		showTips: true,
-		logToFile: false
+		logToFile: false,
+		logLevel: "all"
 	};
 
 	static async loadSettings(plugin: Plugin) {

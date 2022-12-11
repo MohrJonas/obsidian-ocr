@@ -8,6 +8,7 @@ import {areDepsMet} from "./Convert";
 import InstallationProviderManager from "./utils/installation/InstallationProviderManager";
 import TerminalModal from "./modals/TerminalModal";
 import ObsidianOCRPlugin from "./Main";
+import SimpleLogger from "simple-node-logger";
 
 export class SettingsTab extends PluginSettingTab {
 
@@ -108,6 +109,20 @@ export class SettingsTab extends PluginSettingTab {
 				await SettingsManager.saveSettings();
 			});
 		}).setName("Show tips").setDesc("Whether to show a tip at startup");
+		new Setting(this.containerEl).addDropdown((dc) => {
+			dc.addOptions({
+				"debug": "debug",
+				"info": "info",
+				"warn": "warn",
+				"error": "error",
+			});
+			dc.setValue(SettingsManager.currentSettings.logLevel.toString());
+			dc.onChange(async (value) => {
+				SettingsManager.currentSettings.logLevel = <SimpleLogger.STANDARD_LEVELS>value;
+				ObsidianOCRPlugin.logger.setLevel(<SimpleLogger.STANDARD_LEVELS>value);
+				await SettingsManager.saveSettings();
+			});
+		}).setName("Log level").setDesc("Set the log level. Useful for debugging");
 		new Setting(this.containerEl).addToggle((tc) => {
 			tc.setValue(SettingsManager.currentSettings.logToFile);
 			tc.onChange(async (value) => {

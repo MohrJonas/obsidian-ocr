@@ -28,7 +28,9 @@ export async function processFile(file: File): Promise<Transcript | undefined> {
 	switch (getFileType(file)) {
 	case FILE_TYPE.PDF: {
 		const imagePaths = await convertPdfToPng(file);
+		if(!imagePaths) return undefined;
 		const ocrResults = await OCRProviderManager.getByName(SettingsManager.currentSettings.ocrProviderName).performOCR(imagePaths);
+		if(!ocrResults) return undefined;
 		const transcript = new Transcript(
 			ObsidianOCRPlugin.plugin.manifest.version,
 			file.vaultRelativePath,
@@ -42,6 +44,7 @@ export async function processFile(file: File): Promise<Transcript | undefined> {
 	}
 	case FILE_TYPE.IMAGE: {
 		const ocrResults = await OCRProviderManager.getByName(SettingsManager.currentSettings.ocrProviderName).performOCR([file.absPath]);
+		if(!ocrResults) return undefined;
 		const transcript = new Transcript(
 			ObsidianOCRPlugin.plugin.manifest.version,
 			file.vaultRelativePath,

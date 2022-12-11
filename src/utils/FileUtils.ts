@@ -41,8 +41,8 @@ export function isFileValid(file: File): boolean {
 }
 
 export enum FILE_TYPE {
-	IMAGE,
-	PDF
+    IMAGE,
+    PDF
 }
 
 /**
@@ -77,7 +77,8 @@ export async function getAllJsonFiles(): Promise<Array<File>> {
  * @return boolean
  */
 export function isFileOCRable(file: File): boolean {
-	return isFileValid(file) && !DBManager.doesTranscriptWithPathExist(file.vaultRelativePath);
+	return isFileValid(file)
+        && !DBManager.doesTranscriptWithPathExist(file.vaultRelativePath);
 }
 
 /**

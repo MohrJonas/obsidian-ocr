@@ -17,7 +17,7 @@ import DebInstallationProvider from "./utils/installation/DebInstallationProvide
 import Tips from "./Tips";
 import DBManager from "./db/DBManager";
 import {getAllJsonFiles, isFileOCRable, migrateToDB} from "./utils/FileUtils";
-import SimpleLogger, {createSimpleFileLogger, createSimpleLogger} from "simple-node-logger";
+import SimpleLogger, {createSimpleFileLogger, createSimpleLogger, STANDARD_LEVELS} from "simple-node-logger";
 import {join} from "path";
 import SettingsModal from "./modals/SettingsModal";
 
@@ -35,7 +35,7 @@ export default class ObsidianOCRPlugin extends Plugin {
 		ObsidianOCRPlugin.logger = SettingsManager.currentSettings.logToFile
 			? createSimpleFileLogger(join((app.vault.adapter as FileSystemAdapter).getBasePath(), "obsidian-ocr.log"))
 			: createSimpleLogger();
-		ObsidianOCRPlugin.logger.setLevel("all");
+		ObsidianOCRPlugin.logger.setLevel(<STANDARD_LEVELS>SettingsManager.currentSettings.logLevel);
 		ObsidianOCRPlugin.plugin = this;
 		OCRProviderManager.addAdditionalPaths();
 		await OCRProviderManager.applyHomebrewWorkaround();
@@ -53,7 +53,14 @@ export default class ObsidianOCRPlugin extends Plugin {
 		}));
 		this.registerEvent(this.app.vault.on("delete", async (tFile) => {
 			const file = File.fromFile(tFile as TFile);
-			await DBManager.removeTranscriptByPath(file.vaultRelativePath);
+			ObsidianOCRPlugin.logger.info(`Deleting transcript with path ${file.vaultRelativePath}`);
+			const transcript = DBManager.getTranscriptByPath(file.vaultRelativePath);
+			if(!transcript) {
+				ObsidianOCRPlugin.logger.warn(`Attempting to delete a non-existent transcript with path ${file.vaultRelativePath}`);
+				return;
+			}
+			await DBManager.removeSettingsByTranscriptId(transcript.transcriptId);
+			await DBManager.removeTranscriptByPath(transcript.relativePath);
 		}));
 		this.registerEvent(this.app.vault.on("rename", async (file, oldPath) => {
 			const newFile = File.fromFile(file as TFile);

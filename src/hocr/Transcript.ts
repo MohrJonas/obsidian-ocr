@@ -5,6 +5,7 @@ import {readFileSync} from "fs";
 // @ts-ignore
 import * as jsonComplete from "../../node_modules/json-complete/dist/json_complete.cjs.min.js";
 import {readFile} from "fs/promises";
+import ObsidianOCRPlugin from "../Main";
 
 export default class Transcript implements HocrElement {
 
@@ -40,7 +41,7 @@ export default class Transcript implements HocrElement {
 
 	private static getCapabilities(document: Document): Array<string> {
 		const capabilitiesElements = document.getElementsByName("ocr-capabilities");
-		if (capabilitiesElements.length == 0) console.log("😨 HOCR has no capabilities");
+		if (capabilitiesElements.length == 0) ObsidianOCRPlugin.logger.warn("😨 HOCR has no capabilities");
 		return Array.from(capabilitiesElements).map((element) => {
 			return element.title.split(" ");
 		}).flat();

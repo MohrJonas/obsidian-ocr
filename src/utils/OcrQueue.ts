@@ -18,8 +18,6 @@ export class OcrQueue {
 			const transcript = await processFile(file);
 			if (!transcript) return;
 			DBManager.insertTranscript(file.vaultRelativePath, transcript.children as Array<Page>);
-			//TranscriptCache.add(transcript);
-			//app.vault.create(file.jsonFile.vaultRelativePath, Transcript.encode(transcript));
 			StatusBar.removeIndexingFile(file);
 			callback();
 		}, SettingsManager.currentSettings.concurrentIndexingProcesses);

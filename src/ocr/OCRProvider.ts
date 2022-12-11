@@ -8,6 +8,6 @@ export default abstract class OCRProvider {
 
 	abstract displaySettings(element: HTMLElement): void;
 
-	abstract performOCR(imagePaths: Array<string>): Promise<Array<string>>
+	abstract performOCR(imagePaths: Array<string>): Promise<Array<string> | undefined>
 
 }

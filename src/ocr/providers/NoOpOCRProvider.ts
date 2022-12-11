@@ -10,7 +10,7 @@ export default class NoOpOCRProvider implements OCRProvider {
 		element.createEl("div", {text: "NoOp-Provider (No Operation) doesn't do anything. Choose another provider from the dropdown."});
 	}
 
-	async performOCR(): Promise<Array<string>> {
+	async performOCR(): Promise<Array<string> | undefined> {
 		// language=HTML
 		return [`
 			<?xml version="1.0" encoding="UTF-8"?>

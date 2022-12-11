@@ -3,6 +3,7 @@ import {existsSync} from "fs";
 import SettingsManager from "../Settings";
 import { delimiter } from "path";
 import {platform} from "os";
+import ObsidianOCRPlugin from "../Main";
 
 export default abstract class OCRProviderManager {
 
@@ -29,7 +30,7 @@ export default abstract class OCRProviderManager {
 	static async applyHomebrewWorkaround() {
 		if(existsSync("/opt/homebrew/bin")) {
 			process.env.PATH = `${process.env.PATH}:/opt/homebrew/bin`;
-			console.log(`Applying homebrew workaround. $PATH is now ${process.env.PATH}`);
+			ObsidianOCRPlugin.logger.info(`Applying homebrew workaround. $PATH is now ${process.env.PATH}`);
 		}
 	}
 
@@ -44,8 +45,8 @@ export default abstract class OCRProviderManager {
 			process.env.PATH = `${process.env.PATH}${delimiter}${SettingsManager.currentSettings.additionalSearchPath}`;
 			break;
 		default:
-			console.log(`Additional paths not implemented for platform ${platform()}. Doing nothing.`);
+			ObsidianOCRPlugin.logger.warn(`Additional paths not implemented for platform ${platform()}. Doing nothing.`);
 		}
-		console.log(`Adding additional paths. $PATH is now ${process.env.PATH}`);
+		ObsidianOCRPlugin.logger.info(`Adding additional paths. $PATH is now ${process.env.PATH}`);
 	}
 }

@@ -68,27 +68,25 @@ export default class TesseractOCRProvider implements OCRProvider {
 		return doesProgramExist("tesseract");
 	}
 
-	async performOCRSingle(source: string): Promise<{ exitcode: number, text: string }> {
+	async performOCRSingle(source: string): Promise<string | undefined> {
 		ObsidianOCRPlugin.logger.info(`Performing OCR on ${source} with Tesseract`);
 		const execReturn = exec(`tesseract ${this.settings.additionalArguments} "${source}" stdout -l ${this.settings.lang} hocr`);
 		ObsidianOCRPlugin.children.push(execReturn.execProcess);
 		const result = await execReturn.execPromise;
 		if (result.exitCode != 0) {
-			return {exitcode: result.exitCode, text: result.stderrOutput};
+			ObsidianOCRPlugin.logger.error(`🥵 Error happened during OCR of file ${source}: ${result.stderrOutput}`);
+			return undefined;
 		}
-		return {exitcode: result.exitCode, text: result.stdoutOutput};
+		return result.stdoutOutput;
 	}
 
 
-	async performOCR(imagePaths: Array<string>): Promise<Array<string>> {
+	async performOCR(imagePaths: Array<string>): Promise<Array<string> | undefined> {
 		const results = [];
 		for (const source in imagePaths) {
 			const ocrResult = await this.performOCRSingle(imagePaths[source]);
-			if (ocrResult.exitcode == 0) results.push(ocrResult.text);
-			else {
-				console.log(`🥵 Error happened during OCR of file ${imagePaths[source]}, using blank page instead: ${ocrResult.text}`);
-				results.push("");
-			}
+			if (ocrResult) results.push(ocrResult);
+			else return undefined;
 		}
 		return results;
 	}

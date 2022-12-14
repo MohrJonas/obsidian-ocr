@@ -1,7 +1,6 @@
-import {FILE_TYPE, filePathToJsonPath, getFileType, isFileValid} from "../utils/FileUtils";
+import {FILE_TYPE, getFileType, isFileValid} from "../utils/FileUtils";
 import {expect} from "chai";
 import {describe, test} from "../utils/Test";
-import {join} from "path";
 import File from "../File";
 import {Settings} from "../Settings";
 
@@ -24,17 +23,6 @@ const settings: Settings = {
 };
 
 export default [
-	describe("Check if `filePathToJsonPath` modifies the path correctly",
-		test("check test.pdf -> .test.pdf.ocr.json", () => {
-			expect(filePathToJsonPath("test.pdf")).to.eq(".test.pdf.ocr.json");
-		}),
-		test("check hello/world/test.pdf -> hello/world/.test.pdf.ocr.json", () => {
-			expect(filePathToJsonPath(join("hello", "world", "test.pdf"))).to.eq(join("hello", "world", ".test.pdf.ocr.json"));
-		}),
-		test("check undefined -> error", () => {
-			expect(filePathToJsonPath.bind(filePathToJsonPath, undefined)).to.throw();
-		})
-	),
 	describe("Check if `isFileValid` returns the correct value",
 		test("check !png && !img", () => {
 			const file = File.fromVaultRelativePath("some/path.md");

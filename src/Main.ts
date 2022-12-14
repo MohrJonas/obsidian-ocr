@@ -16,7 +16,7 @@ import WindowsInstallationProvider from "./utils/installation/WindowsInstallatio
 import DebInstallationProvider from "./utils/installation/DebInstallationProvider";
 import Tips from "./Tips";
 import DBManager from "./db/DBManager";
-import {isFileOCRable, isFileValid} from "./utils/FileUtils";
+import {shouldFileBeOCRed, isFileValid} from "./utils/FileUtils";
 import SimpleLogger, {createSimpleFileLogger, createSimpleLogger, STANDARD_LEVELS} from "simple-node-logger";
 import {join} from "path";
 import SettingsModal from "./modals/SettingsModal";
@@ -46,7 +46,7 @@ export default class ObsidianOCRPlugin extends Plugin {
 		this.registerEvent(this.app.vault.on("create", async (tFile) => {
 			if (tFile instanceof TFolder) return;
 			const file = File.fromFile(tFile as TFile);
-			if (!isFileOCRable(file, SettingsManager.currentSettings)) return;
+			if (!shouldFileBeOCRed(file, SettingsManager.currentSettings)) return;
 			OcrQueue.enqueueFile(file);
 		}));
 		this.registerEvent(this.app.vault.on("delete", async (tFile) => {
@@ -60,7 +60,7 @@ export default class ObsidianOCRPlugin extends Plugin {
 		}));
 		this.registerEvent(this.app.vault.on("rename", async (file, oldPath) => {
 			const newFile = File.fromFile(file as TFile);
-			if (!isFileOCRable(newFile, SettingsManager.currentSettings)) return;
+			if (!shouldFileBeOCRed(newFile, SettingsManager.currentSettings)) return;
 			await DBManager.updateTranscriptPath(oldPath, newFile.vaultRelativePath);
 		}));
 		this.app.workspace.onLayoutReady(async () => {

@@ -1,20 +1,8 @@
-import {basename, dirname, join} from "path";
 import File from "../File";
 import {Settings} from "../Settings";
 import {globby} from "globby";
 import DBManager from "../db/DBManager";
 
-/**
- * Convert a path to a file to the path of the associated json file
- * @example hello.png -> .hello.png.ocr.json
- * @example some/path/document.pdf -> /some/path/.document.ocr.json
- * @deprecated Only remains until File-class is changed
- * @param filePath the path of the file, can be either relative or absolute
- * @return the json file path. Depending on whether @param filePath is relative or absolute, so is the return value
- */
-export function filePathToJsonPath(filePath: string): string {
-	return join(dirname(filePath), `.${basename(filePath)}.ocr.json`);
-}
 
 /**
  * Check if the file is valid for OCR.
@@ -67,15 +55,13 @@ export async function getAllJsonFiles(cwd: string): Promise<Array<File>> {
 }
 
 /**
- * Check whether this is a file to be process via OCR
- * This function is a bit misleading and should be changed in the future.
- * Currently, it checks, if the file is valid (meaning correct extension) AND if its transcript is already present in the database
+ * Check whether this file should be OCRed right now
+ * It checks, if the file is valid (meaning correct extension) AND if its transcript is already present in the database
  * @param file The file to check
  * @param settings The settings to pass to {@link isFileValid}
  * @return true, if the file is valid for OCR, false otherwise
- * //TODO
  */
-export function isFileOCRable(file: File, settings: Settings): boolean {
+export function shouldFileBeOCRed(file: File, settings: Settings): boolean {
 	return isFileValid(file, settings)
         && !DBManager.doesTranscriptWithPathExist(file.vaultRelativePath);
 }

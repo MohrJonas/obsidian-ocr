@@ -1,4 +1,3 @@
-import HocrElement from "../hocr/HocrElement";
 import Page from "../hocr/Page";
 import Word from "../hocr/Word";
 
@@ -17,10 +16,6 @@ export function flattenText(page: Page): string {
 		.map((child) => {
 			return (child as Word).text;
 		}).flat().join(" ");
-}
-
-function getChildren(element: HocrElement): Array<HocrElement> {
-	return element.children;
 }
 
 export function parseTitle(title: string): Record<string, string> {

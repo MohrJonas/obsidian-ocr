@@ -1,6 +1,6 @@
 import File from "../File";
 import Transcript from "../hocr/Transcript";
-import {FILE_TYPE, getAllJsonFiles, getFileType, isFileOCRable, isFileValid} from "./FileUtils";
+import {FILE_TYPE, getAllJsonFiles, getFileType, shouldFileBeOCRed, isFileValid} from "./FileUtils";
 import {StatusBar} from "../StatusBar";
 import {convertPdfToPng} from "../Convert";
 import OCRProviderManager from "../ocr/OCRProviderManager";
@@ -66,7 +66,7 @@ export function processVault(settings: Settings) {
 			return File.fromFile(tFile);
 		})
 		.filter((file) => {
-			return isFileValid(file, settings) && isFileOCRable(file, settings);
+			return isFileValid(file, settings) && shouldFileBeOCRed(file, settings);
 		})
 		.forEach(async (file) => {
 			await OcrQueue.enqueueFile(file);

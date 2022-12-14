@@ -71,7 +71,7 @@ export default class DBManager {
 		}));
 		if(!row) return;
 		const transcriptId = row[0] as number;
-		ObsidianOCRPlugin.logger.info(`Transcript ID is ${transcriptId}`);
+		ObsidianOCRPlugin.logger.debug(`Transcript ID is ${transcriptId}`);
 		DBManager.DB.run("DELETE FROM transcripts WHERE transcript_id = :id", {
 			":id": transcriptId
 		});

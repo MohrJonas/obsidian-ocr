@@ -2,6 +2,9 @@ import {Modal} from "obsidian";
 import {Terminal} from "xterm";
 import {FitAddon} from "xterm-addon-fit";
 
+/**
+ * Modal used to display a terminal for shell-based automatic dependency installations
+ * */
 export default class TerminalModal extends Modal {
 
 	terminal = new Terminal({

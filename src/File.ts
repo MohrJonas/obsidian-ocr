@@ -2,6 +2,11 @@ import {FileSystemAdapter, TFile} from "obsidian";
 import {relative} from "path";
 import {filePathToJsonPath} from "./utils/FileUtils";
 
+/**
+ * Class representing an on-disk file with some convenience functions
+ * This file will be reworked in the near future, removing the unused jsonFile and annotationFile fields
+ * //TODO
+ * */
 export default class File {
 
 	private constructor(

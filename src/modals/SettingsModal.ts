@@ -2,6 +2,9 @@ import {Modal, Setting} from "obsidian";
 import FileSpecificSettings from "../db/FileSpecificSettings";
 import DBManager from "../db/DBManager";
 
+/**
+ * Modal used to display and change transcript-specific settings
+ * */
 export default class SettingsModal extends Modal {
 
 	private readonly settings: FileSpecificSettings;

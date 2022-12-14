@@ -6,6 +6,9 @@ export enum STATUS {
     DELETING
 }
 
+/**
+ * Statusbar item
+ * */
 export abstract class StatusBar {
 
 	private static parentHTML: HTMLElement;

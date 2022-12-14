@@ -1,5 +1,8 @@
 import OCRProvider from "../OCRProvider";
 
+/**
+ * No-operation implementation of {@link OCRProvider}
+ * */
 export default class NoOpOCRProvider implements OCRProvider {
 
 	public getProviderName(): string {

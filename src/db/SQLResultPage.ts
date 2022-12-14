@@ -1,3 +1,6 @@
+/**
+ * Immutable wrapper class for a DB-row from the pages table
+ * */
 export class SQLResultPage {
 	constructor(
 		public readonly pageId: number,

@@ -6,7 +6,7 @@ import OCRProviderManager from "./ocr/OCRProviderManager";
 import NoOpOCRProvider from "./ocr/providers/NoOpOCRProvider";
 import TesseractOCRProvider from "./ocr/providers/TesseractOCRProvider";
 import File from "./File";
-import {processVault} from "./utils/FileOps";
+import {processVault, removeAllJsonFiles} from "./utils/FileOps";
 import SearchModal from "./modals/SearchModal";
 import {areDepsMet} from "./Convert";
 import {OcrQueue} from "./utils/OcrQueue";
@@ -16,10 +16,11 @@ import WindowsInstallationProvider from "./utils/installation/WindowsInstallatio
 import DebInstallationProvider from "./utils/installation/DebInstallationProvider";
 import Tips from "./Tips";
 import DBManager from "./db/DBManager";
-import {getAllJsonFiles, isFileOCRable, isFileValid, migrateToDB} from "./utils/FileUtils";
+import {isFileOCRable, isFileValid} from "./utils/FileUtils";
 import SimpleLogger, {createSimpleFileLogger, createSimpleLogger, STANDARD_LEVELS} from "simple-node-logger";
 import {join} from "path";
 import SettingsModal from "./modals/SettingsModal";
+import TestSuite from "./utils/TestSuite";
 
 export default class ObsidianOCRPlugin extends Plugin {
 
@@ -45,35 +46,31 @@ export default class ObsidianOCRPlugin extends Plugin {
 		this.registerEvent(this.app.vault.on("create", async (tFile) => {
 			if (tFile instanceof TFolder) return;
 			const file = File.fromFile(tFile as TFile);
-			if (!isFileOCRable(file)) return;
-			if(file.jsonFile)
-				await migrateToDB(file);
-			else
-				OcrQueue.enqueueFile(file);
+			if (!isFileOCRable(file, SettingsManager.currentSettings)) return;
+			OcrQueue.enqueueFile(file);
 		}));
 		this.registerEvent(this.app.vault.on("delete", async (tFile) => {
 			const file = File.fromFile(tFile as TFile);
-			if(!isFileValid(file)) return;
+			if (!isFileValid(file, SettingsManager.currentSettings)) return;
 			ObsidianOCRPlugin.logger.info(`Deleting transcript with path ${file.vaultRelativePath}`);
 			const transcript = DBManager.getTranscriptByPath(file.vaultRelativePath);
-			if(!transcript) return;
+			if (!transcript) return;
 			await DBManager.removeSettingsByTranscriptId(transcript.transcriptId);
 			await DBManager.removeTranscriptByPath(transcript.relativePath);
 		}));
 		this.registerEvent(this.app.vault.on("rename", async (file, oldPath) => {
 			const newFile = File.fromFile(file as TFile);
-			if(!isFileOCRable(newFile)) return;
+			if (!isFileOCRable(newFile, SettingsManager.currentSettings)) return;
 			await DBManager.updateTranscriptPath(oldPath, newFile.vaultRelativePath);
 		}));
 		this.app.workspace.onLayoutReady(async () => {
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
+			console.log(app.plugins.plugins);
 			if (SettingsManager.currentSettings.showTips) Tips.showRandomTip();
-			if (!await areDepsMet()) new Notice("Dependecies aren't met");
+			if (!await areDepsMet()) new Notice("Dependencies aren't met");
 			if (SettingsManager.currentSettings.ocrProviderName == "NoOp")
 				new Notice("Don't forget to select an OCR Provider in the settings.");
-			(await getAllJsonFiles()).forEach((file) => {
-				migrateToDB(file);
-			});
-			processVault();
 		});
 		this.app.workspace.on("quit", () => {
 			ObsidianOCRPlugin.children.forEach((child) => {
@@ -114,10 +111,20 @@ export default class ObsidianOCRPlugin extends Plugin {
 				else {
 					DBManager.resetDB();
 					await DBManager.initDB();
-					processVault();
+					processVault(SettingsManager.currentSettings);
 				}
 			},
 		});
+		this.addCommand({
+			id: "run-tests",
+			name: "Run Obsidian-OCR unit tests",
+			callback: () => {
+				TestSuite.forEach((test) => {
+					test.run();
+				});
+			}
+		});
 		StatusBar.setupStatusBar(this.addStatusBarItem());
+		await removeAllJsonFiles();
 	}
 }

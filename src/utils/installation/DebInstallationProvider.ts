@@ -4,6 +4,9 @@ import ansiColors from "ansi-colors";
 import {exec} from "sudo-prompt";
 import {doesProgramExist} from "../Utils";
 
+/**
+ * Automated dependency installation on all apt-based Linux distros (Debian, Ubuntu,...)
+ * */
 export default class DebInstallationProvider implements InstallationProvider {
 
 	async installDependencies(terminal: Terminal) {

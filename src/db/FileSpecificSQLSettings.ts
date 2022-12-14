@@ -1,5 +1,7 @@
 /**
- * Like FileSpecificSettings, but with SQL keys
+ * Like {@link FileSpecificSettings}, but immutable and with associated SQL keys
+ * @description These settings are not meant to be created by hand, but rather fetched from the db with
+ * 				{@link DBManager.getSettingsByTranscriptId}
  * */
 export default class FileSpecificSQLSettings {
 	constructor(

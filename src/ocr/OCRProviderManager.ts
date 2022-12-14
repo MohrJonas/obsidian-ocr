@@ -5,28 +5,44 @@ import { delimiter } from "path";
 import {platform} from "os";
 import ObsidianOCRPlugin from "../Main";
 
+/**
+ * Manager for all {@link OCRProvider}
+ * */
 export default abstract class OCRProviderManager {
 
 	public static ocrProviders: Array<OCRProvider> = [];
 
-	static registerOCRProvider(provider: OCRProvider) {
-		OCRProviderManager.ocrProviders.push(provider);
-	}
-
+	/**
+	 * Register new OCRProvider(s)
+	 * @param providers provider(s) to register
+	 * */
 	static registerOCRProviders(...providers: Array<OCRProvider>) {
 		OCRProviderManager.ocrProviders.push(...providers);
 	}
 
-	static deregisterOCRProvider(): Array<OCRProvider> {
-		return OCRProviderManager.ocrProviders;
+	/**
+	 * Deregister a provider. There shouldn't really be a need for this function, but just in case
+	 * @param provider the provider to deregister
+	 * */
+	static deregisterOCRProvider(provider: OCRProvider) {
+		OCRProviderManager.ocrProviders.remove(provider);
 	}
 
+	/**
+	 * Get the provider with that name
+	 * @param name the name of the provider to get
+	 * @return the fitting provider, or undefined if none were found
+	 * */
 	static getByName(name: string): OCRProvider {
 		return OCRProviderManager.ocrProviders.filter((ocrProvider) => {
 			return ocrProvider.getProviderName() == name;
 		})[0];
 	}
 
+	/**
+	 * MacOS workaround to allow discovery of binaries installed via homebrew
+	 * @see {@link https://github.com/MohrJonas/obsidian-ocr/issues/4}
+	 * */
 	static async applyHomebrewWorkaround() {
 		if(existsSync("/opt/homebrew/bin")) {
 			process.env.PATH = `${process.env.PATH}:/opt/homebrew/bin`;
@@ -34,6 +50,9 @@ export default abstract class OCRProviderManager {
 		}
 	}
 
+	/**
+	 * Add all additional paths specified in the settings
+	 * */
 	static addAdditionalPaths() {
 		if(SettingsManager.currentSettings.additionalSearchPath.length == 0) return;
 		switch (platform()) {

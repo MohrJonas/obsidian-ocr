@@ -1,8 +1,11 @@
 import HocrElement from "./HocrElement";
-import ContentArea from "./ContentArea";
 import BoundingBox from "./BoundingBox";
 import Line from "./Line";
 
+/**
+ * In-code representation of a hocr paragraph
+ * @see {@link HocrElement} for further explanation
+ * */
 export default class Paragraph implements HocrElement {
 
 	public readonly bounds: BoundingBox;

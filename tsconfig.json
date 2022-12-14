@@ -24,7 +24,6 @@
 		"allowSyntheticDefaultImports": true
 	},
 	"include": [
-		"**/*.ts",
-		"decs.d.ts"
+		"**/*.ts"
 	]
 }

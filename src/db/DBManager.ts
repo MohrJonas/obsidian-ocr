@@ -29,10 +29,10 @@ export default class DBManager {
 			locateFile: file => `https://sql.js.org/dist/${file}`
 		});
 		if (existsSync(DBManager.DB_PATH)) {
-			ObsidianOCRPlugin.logger.debug(`Opening already existent database ${this.DB_PATH}`);
+			ObsidianOCRPlugin.logger.info(`Opening already existent database ${this.DB_PATH}`);
 			DBManager.DB = new DBManager.SQL.Database(await readFile(DBManager.DB_PATH));
 		} else {
-			ObsidianOCRPlugin.logger.debug(`Creating new database ${this.DB_PATH}`);
+			ObsidianOCRPlugin.logger.info(`Creating new database ${this.DB_PATH}`);
 			DBManager.DB = new DBManager.SQL.Database();
 			await DBManager.initDB();
 		}
@@ -44,7 +44,7 @@ export default class DBManager {
 	 * @param pages An array of Pages that make up the transcript
 	 * */
 	static async insertTranscript(relativeFilePath: string, pages: Array<Page>) {
-		ObsidianOCRPlugin.logger.debug(`Inserting transcript with path ${relativeFilePath} and ${pages.length} pages`);
+		ObsidianOCRPlugin.logger.info(`Inserting transcript with path ${relativeFilePath} and ${pages.length} pages`);
 		const transcriptId = DBManager.DB.exec("INSERT INTO transcripts (relative_path, num_pages) VALUES (:path, :numPages) RETURNING transcript_id", {
 			":path": relativeFilePath, ":numPages": pages.length
 		});
@@ -63,15 +63,15 @@ export default class DBManager {
 	 * Remove a transcript by its path from the database
 	 * @param relativeFilePath The file-path, relative to the vault base-path, of the transcribed file
 	 * */
-	//TODO for some reason cascade doesn't seem to work, have to find out why. Until the it should work like this too...
+	//TODO for some reason cascade doesn't seem to work, have to find out why. Until then it should work like this too...
 	static async removeTranscriptByPath(relativeFilePath: string) {
-		ObsidianOCRPlugin.logger.debug(`Removing transcript with path ${relativeFilePath}`);
+		ObsidianOCRPlugin.logger.info(`Removing transcript with path ${relativeFilePath}`);
 		const row = DBManager.unwrapSafe(DBManager.DB.exec("SELECT transcript_id FROM transcripts WHERE relative_path = :path;", {
 			":path": relativeFilePath
 		}));
 		if(!row) return;
 		const transcriptId = row[0] as number;
-		ObsidianOCRPlugin.logger.debug(`Transcript ID is ${transcriptId}`);
+		ObsidianOCRPlugin.logger.info(`Transcript ID is ${transcriptId}`);
 		DBManager.DB.run("DELETE FROM transcripts WHERE transcript_id = :id", {
 			":id": transcriptId
 		});
@@ -90,7 +90,7 @@ export default class DBManager {
 	 * @param newPath The new path
 	 * */
 	static async updateTranscriptPath(oldPath: string, newPath: string) {
-		ObsidianOCRPlugin.logger.debug(`Updating transcript path from ${oldPath} to ${newPath}`);
+		ObsidianOCRPlugin.logger.info(`Updating transcript path from ${oldPath} to ${newPath}`);
 		DBManager.DB.run("UPDATE transcripts SET relative_path = :newPath WHERE relative_path = :oldPath", {
 			":oldPath": oldPath, ":newPath": newPath
 		});
@@ -139,7 +139,7 @@ export default class DBManager {
 	 * @param settings The settings to save
 	 * */
 	static setSettingsByTranscriptId(id: number, settings: FileSpecificSettings) {
-		ObsidianOCRPlugin.logger.debug(`Setting settings with transcript id ${id} to ${settings}`);
+		ObsidianOCRPlugin.logger.info(`Setting settings with transcript id ${id} to ${settings}`);
 		DBManager.DB.run("DELETE FROM settings WHERE transcript_id = :id", {
 			":id": id
 		});
@@ -170,7 +170,7 @@ export default class DBManager {
 	 * Close the database
 	 * */
 	static dispose() {
-		ObsidianOCRPlugin.logger.debug("Closing DB");
+		ObsidianOCRPlugin.logger.info("Closing DB");
 		DBManager.DB.close();
 	}
 
@@ -178,7 +178,7 @@ export default class DBManager {
 	 * Write the database to file
 	 * */
 	static async saveDB() {
-		ObsidianOCRPlugin.logger.debug(`Saving DB to ${DBManager.DB_PATH}`);
+		ObsidianOCRPlugin.logger.info(`Saving DB to ${DBManager.DB_PATH}`);
 		await writeFile(DBManager.DB_PATH, Buffer.from(DBManager.DB.export()));
 	}
 
@@ -226,7 +226,7 @@ export default class DBManager {
 	 * Reset the database by dropping all tables
 	 * */
 	static resetDB() {
-		ObsidianOCRPlugin.logger.debug("Resetting DB");
+		ObsidianOCRPlugin.logger.info("Resetting DB");
 		DBManager.DB.run("DROP TABLE IF EXISTS pages");
 		DBManager.DB.run("DROP TABLE IF EXISTS transcripts");
 	}
@@ -250,7 +250,7 @@ export default class DBManager {
 	 * Init the database by creating all tables
 	 * */
 	static async initDB() {
-		ObsidianOCRPlugin.logger.debug("Initializing DB");
+		ObsidianOCRPlugin.logger.info("Initializing DB");
 		DBManager.DB.exec(`
             CREATE TABLE IF NOT EXISTS transcripts
             (

@@ -4,7 +4,9 @@ import {exec} from "sudo-prompt";
 import ansiColors from "ansi-colors";
 import {platform} from "os";
 
-
+/**
+ * Automated dependency installation on Windows using chocolatey
+ * */
 export default class WindowsInstallationProvider implements InstallationProvider {
 
 	async installDependencies(terminal: Terminal) {

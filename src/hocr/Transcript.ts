@@ -7,6 +7,7 @@ import * as jsonComplete from "../../node_modules/json-complete/dist/json_comple
 import {readFile} from "fs/promises";
 import ObsidianOCRPlugin from "../Main";
 
+
 export default class Transcript implements HocrElement {
 
 	public readonly bounds: undefined = undefined;

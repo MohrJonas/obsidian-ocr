@@ -31,6 +31,7 @@ export async function convertPdfToPng(file: File): Promise<Array<string> | undef
 	});
 	const randomFolderPath = join(tmpdir(), randomFolderName);
 	await mkdir(randomFolderPath);
+	ObsidianOCRPlugin.logger.info(`Converting pdf ${file.absPath} to png(s) in ${randomFolderPath}`);
 	const command = `${platformSpecific} -density ${SettingsManager.currentSettings.density} -quality ${SettingsManager.currentSettings.quality} -background white -alpha remove -alpha off ${SettingsManager.currentSettings.additionalImagemagickArgs} "${file.absPath}" "${join(randomFolderPath, "out.png")}"`;
 	const execPromise = exec(command);
 	ObsidianOCRPlugin.children.push(execPromise.execProcess);

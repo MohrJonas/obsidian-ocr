@@ -6,6 +6,9 @@ import SettingsManager from "../../Settings";
 import ObsidianOCRPlugin from "../../Main";
 import {EOL} from "os";
 
+/**
+ * Tesseract-based implementation of {@link OCRProvider}
+ * */
 export default class TesseractOCRProvider implements OCRProvider {
 
 	private static readonly DEFAULT_SETTINGS: Record<string, unknown> = {

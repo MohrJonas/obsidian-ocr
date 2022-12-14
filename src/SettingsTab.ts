@@ -10,6 +10,9 @@ import TerminalModal from "./modals/TerminalModal";
 import ObsidianOCRPlugin from "./Main";
 import SimpleLogger from "simple-node-logger";
 
+/**
+ * Settings tab
+ * */
 export class SettingsTab extends PluginSettingTab {
 
 	private readonly plugin: Plugin;

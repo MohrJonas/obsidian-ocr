@@ -1,5 +1,8 @@
 import {Modal} from "obsidian";
 
+/**
+ * Modal to show an enlarged preview of a page's thumbnail
+ * */
 export default class ImageModal extends Modal {
 
 	constructor(private readonly image: string) {

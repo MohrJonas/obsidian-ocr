@@ -6,6 +6,9 @@ import ImageModal from "./ImageModal";
 import DBManager from "../db/DBManager";
 import {SQLResultPage} from "../db/SQLResultPage";
 
+/**
+ * Modal used to search in transcripts
+ * */
 export default class SearchModal extends SuggestModal<SQLResultPage> {
 
 	private query: string;

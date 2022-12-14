@@ -2,7 +2,7 @@ import {Plugin} from "obsidian";
 import OCRProvider from "./ocr/OCRProvider";
 import SimpleLogger from "simple-node-logger";
 
-interface Settings {
+export interface Settings {
 	ocrProviderName: string;
 	ocrProviderSettings: Record<string, Record<string, unknown>>;
 	fuzzySearch: boolean;

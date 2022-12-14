@@ -7,7 +7,11 @@ import Worker from "./CacheWorker.worker";
 import File from "./File";
 import {clearTimeout, setTimeout} from "timers";
 import SettingsManager from "./Settings";
+import {FileSystemAdapter} from "obsidian";
 
+/**
+ * In-memory transcript cache
+ * */
 export default abstract class TranscriptCache {
 
 	private static cacheBackend: Array<Transcript> = [];
@@ -15,7 +19,7 @@ export default abstract class TranscriptCache {
 	private static processChangeTimer: NodeJS.Timeout;
 
 	static async populate() {
-		const jsonFiles = await getAllJsonFiles();
+		const jsonFiles = await getAllJsonFiles((app.vault.adapter as FileSystemAdapter).getBasePath());
 		StatusBar.setMaxCachingFile(jsonFiles.length);
 		TranscriptCache.queue = async.queue(async (file, callback) => {
 			StatusBar.addCachingFile(file);

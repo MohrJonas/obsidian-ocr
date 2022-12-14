@@ -3,6 +3,10 @@ import ContentArea from "./ContentArea";
 import BoundingBox from "./BoundingBox";
 import {parseTitle} from "../utils/HocrUtils";
 
+/**
+ * In-code representation of a hocrpage
+ * @see {@link HocrElement} for further explanation
+ * */
 export default class Page implements HocrElement {
 
 	public readonly children: Array<HocrElement>;

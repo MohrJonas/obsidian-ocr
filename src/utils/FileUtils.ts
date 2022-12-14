@@ -1,17 +1,14 @@
 import {basename, dirname, join} from "path";
 import File from "../File";
-import SettingsManager from "../Settings";
+import {Settings} from "../Settings";
 import {globby} from "globby";
-import normalizePath from "normalize-path";
-import {FileSystemAdapter} from "obsidian";
 import DBManager from "../db/DBManager";
-import {unlink} from "fs/promises";
-import Transcript from "../hocr/Transcript";
-import Page from "../hocr/Page";
-import ObsidianOCRPlugin from "../Main";
 
 /**
  * Convert a path to a file to the path of the associated json file
+ * @example hello.png -> .hello.png.ocr.json
+ * @example some/path/document.pdf -> /some/path/.document.ocr.json
+ * @deprecated Only remains until File-class is changed
  * @param filePath the path of the file, can be either relative or absolute
  * @return the json file path. Depending on whether @param filePath is relative or absolute, so is the return value
  */
@@ -19,24 +16,18 @@ export function filePathToJsonPath(filePath: string): string {
 	return join(dirname(filePath), `.${basename(filePath)}.ocr.json`);
 }
 
-export function stripJsonSuffix(filePath: string): string {
-	return filePath.replace(".ocr.json", "");
-}
-
-export function filePathToAnnotationPath(filePath: string): string {
-	return join(dirname(filePath), `.${basename(filePath)}.ocr`);
-}
-
 /**
- * Check if the file is valid for OCR
+ * Check if the file is valid for OCR.
+ * Being valid for OCR means it has the correct extension (png, jpg, jpeg, pdf) AND processing images / pdfs is enabled in the settings
  * @param file the file to check
+ * @param settings the settings to lookup in, whether pdf and image ocr is enabled
  * @return true if the file is valid, otherwise false
  */
-export function isFileValid(file: File): boolean {
+export function isFileValid(file: File, settings: Settings): boolean {
 	if (["png", "jpg", "jpeg"].contains(file.extension))
-		return SettingsManager.currentSettings.ocrImage;
+		return settings.ocrImage;
 	if (file.extension == "pdf")
-		return SettingsManager.currentSettings.ocrPDF;
+		return settings.ocrPDF;
 	return false;
 }
 
@@ -47,8 +38,11 @@ export enum FILE_TYPE {
 
 /**
  * Convert the filetype to an enum for convenience
- * @param file
- * @return
+ * @param file The file whose type should be fetched
+ * @return FILE_TYPE.PDF, if the file has a ".pdf" extension, FILE_TYPE.IMAGE otherwise
+ * @description This method will return FILE_TYPE.IMAGE for all file-extensions, except ".pdf".
+ * @description This  method won't ever return anything from a file with no extension,
+ *                because an exception will be thrown in the constructor of the File
  */
 export function getFileType(file: File): FILE_TYPE {
 	if (file.extension == "pdf") return FILE_TYPE.PDF;
@@ -57,13 +51,14 @@ export function getFileType(file: File): FILE_TYPE {
 
 /**
  * Find all ocr-json files in the vault
- * @return A list of all absolute filepaths of the ocr-json files
+ * @param cwd The working directory to fetch the json files in
+ * @return A list of all absolute file-paths of the ocr-json files
  */
-export async function getAllJsonFiles(): Promise<Array<File>> {
+export async function getAllJsonFiles(cwd: string): Promise<Array<File>> {
 	return (await globby("**/.*.ocr.json", {
 		absolute: false,
 		onlyFiles: true,
-		cwd: normalizePath((app.vault.adapter as FileSystemAdapter).getBasePath()),
+		cwd: cwd,
 		ignore: [".obsidian/**/*"],
 		dot: true
 	})).map((filePath) => {
@@ -72,21 +67,15 @@ export async function getAllJsonFiles(): Promise<Array<File>> {
 }
 
 /**
- * Check whether this is a file to process via OCR
- * @param file
- * @return boolean
+ * Check whether this is a file to be process via OCR
+ * This function is a bit misleading and should be changed in the future.
+ * Currently, it checks, if the file is valid (meaning correct extension) AND if its transcript is already present in the database
+ * @param file The file to check
+ * @param settings The settings to pass to {@link isFileValid}
+ * @return true, if the file is valid for OCR, false otherwise
+ * //TODO
  */
-export function isFileOCRable(file: File): boolean {
-	return isFileValid(file)
+export function isFileOCRable(file: File, settings: Settings): boolean {
+	return isFileValid(file, settings)
         && !DBManager.doesTranscriptWithPathExist(file.vaultRelativePath);
-}
-
-/**
- * Migrate a file from the old json format to the new sqlite database
- * @param file The json file to migrate
- * */
-export async function migrateToDB(file: File) {
-	ObsidianOCRPlugin.logger.info(`Migrating file ${file.vaultRelativePath} to DB`);
-	await DBManager.insertTranscript(stripJsonSuffix(file.vaultRelativePath), (await Transcript.load(file.absPath)).children as Array<Page>);
-	await unlink(file.absPath);
 }

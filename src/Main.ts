@@ -46,8 +46,9 @@ export default class ObsidianOCRPlugin extends Plugin {
 		this.registerEvent(this.app.vault.on("create", async (tFile) => {
 			if (tFile instanceof TFolder) return;
 			const file = File.fromFile(tFile as TFile);
-			if (!shouldFileBeOCRed(file, SettingsManager.currentSettings)) return;
-			OcrQueue.enqueueFile(file);
+			if (shouldFileBeOCRed(file, SettingsManager.currentSettings)) {
+				await OcrQueue.enqueueFile(file);
+			}
 		}));
 		this.registerEvent(this.app.vault.on("delete", async (tFile) => {
 			const file = File.fromFile(tFile as TFile);
@@ -64,13 +65,13 @@ export default class ObsidianOCRPlugin extends Plugin {
 			await DBManager.updateTranscriptPath(oldPath, newFile.vaultRelativePath);
 		}));
 		this.app.workspace.onLayoutReady(async () => {
-			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-			// @ts-ignore
-			console.log(app.plugins.plugins);
 			if (SettingsManager.currentSettings.showTips) Tips.showRandomTip();
-			if (!await areDepsMet()) new Notice("Dependencies aren't met");
 			if (SettingsManager.currentSettings.ocrProviderName == "NoOp")
 				new Notice("Don't forget to select an OCR Provider in the settings.");
+			if (await areDepsMet())
+				processVault(SettingsManager.currentSettings);
+			else
+				new Notice("Dependencies aren't met");
 		});
 		this.app.workspace.on("quit", () => {
 			ObsidianOCRPlugin.children.forEach((child) => {
@@ -111,6 +112,7 @@ export default class ObsidianOCRPlugin extends Plugin {
 				else {
 					DBManager.resetDB();
 					await DBManager.initDB();
+					await removeAllJsonFiles();
 					processVault(SettingsManager.currentSettings);
 				}
 			},
@@ -125,6 +127,5 @@ export default class ObsidianOCRPlugin extends Plugin {
 			}
 		});
 		StatusBar.setupStatusBar(this.addStatusBarItem());
-		await removeAllJsonFiles();
 	}
 }

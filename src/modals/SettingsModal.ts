@@ -1,6 +1,8 @@
 import {Modal, Setting} from "obsidian";
 import FileSpecificSettings from "../db/FileSpecificSettings";
 import DBManager from "../db/DBManager";
+import {FILE_TYPE, getFileType} from "../utils/FileUtils";
+import File from "../File";
 
 /**
  * Modal used to display and change transcript-specific settings
@@ -34,14 +36,15 @@ export default class SettingsModal extends Modal {
 				this.settings.imageDensity = value;
 			});
 		}).setName("Image quality").setDesc("Image quality of converted PDFs");
-		new Setting(this.contentEl).addText((tc) => {
-			tc.setValue(this.settings.imagemagickArgs);
-			tc.setPlaceholder("Additional imagemagick args");
-			tc.onChange((value) => {
-				this.settings.imagemagickArgs = value;
-			});
-		}).setName("Additional imagemagick args")
-			.setDesc("Additional args passed to imagemagick when converting PDF to PNGs");
+		if(getFileType(File.fromVaultRelativePath(this.filePath)) == FILE_TYPE.PDF)
+			new Setting(this.contentEl).addText((tc) => {
+				tc.setValue(this.settings.imagemagickArgs);
+				tc.setPlaceholder("Additional imagemagick args");
+				tc.onChange((value) => {
+					this.settings.imagemagickArgs = value;
+				});
+			}).setName("Additional imagemagick args")
+				.setDesc("Additional args passed to imagemagick when converting PDF to PNGs");
 		new Setting(this.contentEl).addToggle((tc) => {
 			tc.setValue(this.settings.ignore);
 			tc.onChange((value) => {

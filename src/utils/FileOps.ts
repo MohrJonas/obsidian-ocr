@@ -1,6 +1,6 @@
 import File from "../File";
 import Transcript from "../hocr/Transcript";
-import {FILE_TYPE, getAllJsonFiles, getFileType, shouldFileBeOCRed, isFileValid} from "./FileUtils";
+import {FILE_TYPE, getAllJsonFiles, getFileType, shouldFileBeOCRed} from "./FileUtils";
 import {StatusBar} from "../StatusBar";
 import {convertPdfToPng} from "../Convert";
 import OCRProviderManager from "../ocr/OCRProviderManager";
@@ -16,7 +16,7 @@ import {FileSystemAdapter} from "obsidian";
 export async function removeAllJsonFiles() {
 	StatusBar.addStatusDeleting();
 	for (const jsonFile of (await getAllJsonFiles((app.vault.adapter as FileSystemAdapter).getBasePath()))) {
-		unlink(jsonFile.absPath);
+		await unlink(jsonFile.absPath);
 	}
 	StatusBar.removeStatusDeleting();
 }
@@ -66,7 +66,7 @@ export function processVault(settings: Settings) {
 			return File.fromFile(tFile);
 		})
 		.filter((file) => {
-			return isFileValid(file, settings) && shouldFileBeOCRed(file, settings);
+			return shouldFileBeOCRed(file, settings);
 		})
 		.forEach(async (file) => {
 			await OcrQueue.enqueueFile(file);

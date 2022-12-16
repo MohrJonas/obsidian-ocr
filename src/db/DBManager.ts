@@ -79,8 +79,8 @@ export default class DBManager {
 		DBManager.DB.run("DELETE FROM pages WHERE transcript_id = :id", {
 			":id": transcriptId
 		});
-		DBManager.DB.run("DELETE FROM settings WHERE transcript_id = :id", {
-			":id": transcriptId
+		DBManager.DB.run("DELETE FROM settings WHERE relative_path = :path", {
+			":path": relativeFilePath
 		});
 		await DBManager.saveDB();
 	}
@@ -121,31 +121,31 @@ export default class DBManager {
 	}
 
 	/**
-	 * Get the settings associated with the transcript id
-	 * @param id The id to fetch the settings for
+	 * Get the settings associated with the vault-relative path
+	 * @param path The path to fetch the settings for
 	 * @return A FileSpecificSQLSettings if settings exist, undefined otherwise
 	 * */
-	static getSettingsByTranscriptId(id: number): FileSpecificSQLSettings | undefined {
-		ObsidianOCRPlugin.logger.debug(`Fetching settings with transcript id ${id}`);
-		const row = DBManager.unwrapSafe(DBManager.DB.exec("SELECT * FROM settings WHERE transcript_id = :id", {
-			":id": id
+	static getSettingsByRelativePath(path: string): FileSpecificSQLSettings | undefined {
+		ObsidianOCRPlugin.logger.debug(`Fetching settings with path ${path}`);
+		const row = DBManager.unwrapSafe(DBManager.DB.exec("SELECT * FROM settings WHERE relative_path = :path", {
+			":path": path
 		}));
 		if(!row) return undefined;
-		return new FileSpecificSQLSettings(row[0] as number, row[1] as number, row[2] as number, row[3] as number, row[4] as string);
+		return new FileSpecificSQLSettings(row[0] as number, row[1] as string, row[2] as number, row[3] as number, row[4] as string);
 	}
 
 	/**
-	 * Set the settings associated with the transcript id
-	 * @param id The id to set the settings for
+	 * Set the settings associated with the vault-relative path
+	 * @param path The path to set the settings for
 	 * @param settings The settings to save
 	 * */
-	static setSettingsByTranscriptId(id: number, settings: FileSpecificSettings) {
-		ObsidianOCRPlugin.logger.info(`Setting settings with transcript id ${id} to ${settings}`);
-		DBManager.DB.run("DELETE FROM settings WHERE transcript_id = :id", {
-			":id": id
+	static setSettingsByRelativePath(path: string, settings: FileSpecificSettings) {
+		ObsidianOCRPlugin.logger.info(`Setting settings with path ${path} to ${settings}`);
+		DBManager.DB.run("DELETE FROM settings WHERE relative_path = :path", {
+			":path": path
 		});
-		DBManager.DB.run("INSERT INTO settings (transcript_id, image_density, image_quality, imagemagick_args) VALUES (:transcriptId, :imageQuality, :imageDensity, :imagemagickArgs)", {
-			":transcriptId": id,
+		DBManager.DB.run("INSERT INTO settings (relative_path, image_density, image_quality, imagemagick_args) VALUES (:path, :imageQuality, :imageDensity, :imagemagickArgs)", {
+			":path": path,
 			":imageQuality": settings.imageQuality,
 			":imageDensity": settings.imageDensity,
 			":imagemagickArgs": settings.imagemagickArgs,
@@ -157,7 +157,7 @@ export default class DBManager {
 	 * @param relativeFilePath The path to lookup
 	 * @return A SQLResultTranscript
 	 * */
-	static getTranscriptByPath(relativeFilePath: string): SQLResultTranscript | undefined {
+	static getTranscriptByRelativePath(relativeFilePath: string): SQLResultTranscript | undefined {
 		ObsidianOCRPlugin.logger.debug(`Fetching transcript with path ${relativeFilePath}`);
 		const row = DBManager.unwrapSafe(DBManager.DB.exec("SELECT * FROM transcripts WHERE relative_path = :relativePath;", {
 			":relativePath": relativeFilePath
@@ -232,12 +232,12 @@ export default class DBManager {
 	}
 
 	/**
-	 * Remove the setting associated with the transcript id
-	 * @param id The id to remove with
+	 * Remove the setting associated with the vault relative path
+	 * @param path The path to remove with
 	 * */
-	static removeSettingsByTranscriptId(id: number) {
-		DBManager.DB.run("DELETE FROM settings WHERE transcript_id = :id", {
-			":id": id
+	static removeSettingsByRelativePath(path: string) {
+		DBManager.DB.run("DELETE FROM settings WHERE relative_path = :path", {
+			":path": path
 		});
 	}
 
@@ -267,7 +267,9 @@ export default class DBManager {
 	static getAllIgnoredFolders(): Array<SQLResultFolder> {
 		ObsidianOCRPlugin.logger.info("Fetching all ignored folders");
 		const result = DBManager.DB.exec("SELECT * FROM ignored_folders;");
-		return result[0].values.map((row) => { return new SQLResultFolder(row[0] as number, row[1] as string); });
+		const results = result[0];
+		if(!results) return [];
+		return results.values.map((row) => { return new SQLResultFolder(row[0] as number, row[1] as string); });
 	}
 
 	private static unwrapSafe(result: Array<initSqlJs.QueryExecResult>): Array<initSqlJs.SqlValue> | undefined {
@@ -301,11 +303,10 @@ export default class DBManager {
             CREATE TABLE IF NOT EXISTS settings
             (
                 settings_id      integer PRIMARY KEY AUTOINCREMENT,
-                transcript_id    integer,
+                relative_path    text,
                 image_density    integer,
                 image_quality    integer,
-                imagemagick_args text,
-                FOREIGN KEY (transcript_id) REFERENCES transcripts (transcript_id) ON DELETE CASCADE
+                imagemagick_args text
             );
 
 			CREATE TABLE IF NOT EXISTS ignored_folders

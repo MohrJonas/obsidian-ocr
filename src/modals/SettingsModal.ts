@@ -14,9 +14,8 @@ export default class SettingsModal extends Modal {
 
 	constructor(private readonly filePath: string) {
 		super(app);
-		const transcript = DBManager.getTranscriptByPath(filePath);
-		if (!DBManager.getSettingsByTranscriptId(transcript.transcriptId)) this.settings = FileSpecificSettings.DEFAULT();
-		else this.settings = DBManager.getSettingsByTranscriptId(transcript.transcriptId);
+		if (!DBManager.getSettingsByRelativePath(filePath)) this.settings = FileSpecificSettings.DEFAULT();
+		else this.settings = DBManager.getSettingsByRelativePath(filePath);
 	}
 
 	override onOpen() {
@@ -56,27 +55,24 @@ export default class SettingsModal extends Modal {
 			bc.setButtonText("Remove");
 			bc.setWarning();
 			bc.onClick(async () => {
-				const transcript = DBManager.getTranscriptByPath(this.filePath);
-				DBManager.removeSettingsByTranscriptId(transcript.transcriptId);
+				DBManager.removeSettingsByRelativePath(this.filePath);
 				await DBManager.saveDB();
 				this.close();
 			});
 		}).addButton((bc) => {
 			bc.setButtonText("Save");
 			bc.onClick(async () => {
-				const transcript = DBManager.getTranscriptByPath(this.filePath);
-				DBManager.setSettingsByTranscriptId(transcript.transcriptId, this.settings);
+				DBManager.setSettingsByRelativePath(this.filePath, this.settings);
 				await DBManager.saveDB();
 				this.close();
 			});
 		}).addButton((bc) => {
 			bc.setButtonText("Save and reindex");
 			bc.onClick(async () => {
-				const transcript = DBManager.getTranscriptByPath(this.filePath);
-				DBManager.setSettingsByTranscriptId(transcript.transcriptId, this.settings);
+				DBManager.setSettingsByRelativePath(this.filePath, this.settings);
 				await DBManager.saveDB();
-				DBManager.removeSettingsByTranscriptId(transcript.transcriptId);
-				await OcrQueue.enqueueFile(File.fromVaultRelativePath(transcript.relativePath));
+				DBManager.removeSettingsByRelativePath(this.filePath);
+				await OcrQueue.enqueueFile(File.fromVaultRelativePath(this.filePath));
 				this.close();
 			});
 		});

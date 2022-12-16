@@ -7,14 +7,16 @@ import {join} from "path";
 import exec from "@simplyhexagonal/exec";
 import ObsidianOCRPlugin from "./Main";
 import {globby} from "globby";
-import SettingsManager from "./Settings";
 
 /**
  * Convert a file from a pdf to a png
  * @param file The file to convert
+ * @param density The density setting
+ * @param quality The quality setting
+ * @param additionalImagemagickArgs The additional Imagemagick args
  * @returns A list of absolute png-file paths, each representing a page of the pdf
  */
-export async function convertPdfToPng(file: File): Promise<Array<string> | undefined> {
+export async function convertPdfToPng(file: File, density: number, quality: number, additionalImagemagickArgs: string): Promise<Array<string> | undefined> {
 	let platformSpecific: string;
 	switch (platform()) {
 	case "win32":
@@ -32,7 +34,7 @@ export async function convertPdfToPng(file: File): Promise<Array<string> | undef
 	const randomFolderPath = join(tmpdir(), randomFolderName);
 	await mkdir(randomFolderPath);
 	ObsidianOCRPlugin.logger.info(`Converting pdf ${file.absPath} to png(s) in ${randomFolderPath}`);
-	const command = `${platformSpecific} -density ${SettingsManager.currentSettings.density} -quality ${SettingsManager.currentSettings.quality} -background white -alpha remove -alpha off ${SettingsManager.currentSettings.additionalImagemagickArgs} "${file.absPath}" "${join(randomFolderPath, "out.png")}"`;
+	const command = `${platformSpecific} -density ${density} -quality ${quality} -background white -alpha remove -alpha off ${additionalImagemagickArgs} "${file.absPath}" "${join(randomFolderPath, "out.png")}"`;
 	const execPromise = exec(command);
 	ObsidianOCRPlugin.children.push(execPromise.execProcess);
 	const execResult = await execPromise.execPromise;

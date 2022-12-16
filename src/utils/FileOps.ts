@@ -9,6 +9,7 @@ import ObsidianOCRPlugin from "../Main";
 import {unlink} from "fs/promises";
 import {OcrQueue} from "./OcrQueue";
 import {FileSystemAdapter} from "obsidian";
+import DBManager from "../db/DBManager";
 
 /**
  * Remove all json-files from the vault
@@ -26,12 +27,18 @@ export async function removeAllJsonFiles() {
  * @param file The file to process
  */
 export async function processFile(file: File): Promise<Transcript | undefined> {
+	const sqlSettings = DBManager.getSettingsByRelativePath(file.vaultRelativePath);
 	switch (getFileType(file)) {
 	case FILE_TYPE.PDF: {
-		const imagePaths = await convertPdfToPng(file);
-		if(!imagePaths) return undefined;
+		const imagePaths = await convertPdfToPng(
+			file,
+			sqlSettings ? sqlSettings.imageDensity : SettingsManager.currentSettings.density,
+			sqlSettings ? sqlSettings.imageQuality : SettingsManager.currentSettings.quality,
+			sqlSettings ? sqlSettings.imagemagickArgs : SettingsManager.currentSettings.additionalImagemagickArgs,
+		);
+		if (!imagePaths) return undefined;
 		const ocrResults = await OCRProviderManager.getByName(SettingsManager.currentSettings.ocrProviderName).performOCR(imagePaths);
-		if(!ocrResults) return undefined;
+		if (!ocrResults) return undefined;
 		const transcript = new Transcript(
 			ObsidianOCRPlugin.plugin.manifest.version,
 			file.vaultRelativePath,
@@ -45,7 +52,7 @@ export async function processFile(file: File): Promise<Transcript | undefined> {
 	}
 	case FILE_TYPE.IMAGE: {
 		const ocrResults = await OCRProviderManager.getByName(SettingsManager.currentSettings.ocrProviderName).performOCR([file.absPath]);
-		if(!ocrResults) return undefined;
+		if (!ocrResults) return undefined;
 		const transcript = new Transcript(
 			ObsidianOCRPlugin.plugin.manifest.version,
 			file.vaultRelativePath,

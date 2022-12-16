@@ -54,9 +54,9 @@ export default class ObsidianOCRPlugin extends Plugin {
 			const file = File.fromFile(tFile as TFile);
 			if (!isFileValid(file, SettingsManager.currentSettings)) return;
 			ObsidianOCRPlugin.logger.info(`Deleting transcript with path ${file.vaultRelativePath}`);
-			const transcript = DBManager.getTranscriptByPath(file.vaultRelativePath);
+			const transcript = DBManager.getTranscriptByRelativePath(file.vaultRelativePath);
 			if (!transcript) return;
-			await DBManager.removeSettingsByTranscriptId(transcript.transcriptId);
+			await DBManager.removeSettingsByRelativePath(file.vaultRelativePath);
 			await DBManager.removeTranscriptByPath(transcript.relativePath);
 		}));
 		this.registerEvent(this.app.vault.on("rename", async (file, oldPath) => {
@@ -98,7 +98,7 @@ export default class ObsidianOCRPlugin extends Plugin {
 									await DBManager.saveDB();
 								});
 					});
-				else if (DBManager.doesTranscriptWithPathExist((file as TFile).path))
+				else if (isFileValid(File.fromFile(file as TFile), SettingsManager.currentSettings))
 					menu.addItem((item) => {
 						item.setTitle("Custom OCR settings")
 							.setIcon("note-glyph")

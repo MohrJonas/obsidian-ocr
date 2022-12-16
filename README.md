@@ -71,10 +71,20 @@ For the path: check where the binaries are located and add these to "/private/et
 
 ##### Arch / Manjaro
 
+###### Manual installation
+
 - Run `sudo pacman -S tesseract imagemagick`
 - Install any languages you need by installing the appropriate package (usually named `tesseract-data-<lang>`)
 
-Note - if Obsidian is running via the Flatpak installation (such as provided by default in Pop!_OS) then this plugin
+###### Automatic installation
+
+❗The automatic installation features is still in very early development. Expect bugs❗
+
+- Install & enable the plugin
+- Under `settings`, press the `automatic install` button
+
+#### Flatpak
+If Obsidian is running via the Flatpak installation (such as provided by default in Pop!_OS) then this plugin
 will not operate. Flatpak sandboxing will change the filepaths so even providing host access will still be problematic.
 If you have a Flatpak installation you will need to reinstall via a different method to successfully use this plugin.
 

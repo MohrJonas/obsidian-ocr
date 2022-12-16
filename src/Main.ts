@@ -21,6 +21,7 @@ import SimpleLogger, {createSimpleFileLogger, createSimpleLogger, STANDARD_LEVEL
 import {join} from "path";
 import SettingsModal from "./modals/SettingsModal";
 import TestSuite from "./utils/TestSuite";
+import ArchInstallationProvider from "./utils/installation/ArchInstallationProvider";
 
 export default class ObsidianOCRPlugin extends Plugin {
 
@@ -40,7 +41,11 @@ export default class ObsidianOCRPlugin extends Plugin {
 		ObsidianOCRPlugin.plugin = this;
 		OCRProviderManager.addAdditionalPaths();
 		await OCRProviderManager.applyHomebrewWorkaround();
-		InstallationProviderManager.registerProviders(new WindowsInstallationProvider(), new DebInstallationProvider());
+		InstallationProviderManager.registerProviders(
+			new WindowsInstallationProvider(),
+			new DebInstallationProvider(),
+			new ArchInstallationProvider()
+		);
 		OCRProviderManager.registerOCRProviders(new NoOpOCRProvider(), new TesseractOCRProvider());
 		await DBManager.init();
 		this.registerEvent(this.app.vault.on("create", async (tFile) => {

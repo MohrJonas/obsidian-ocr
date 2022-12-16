@@ -1,4 +1,5 @@
 import File from "./File";
+import {OcrQueue} from "./utils/OcrQueue";
 
 export enum STATUS {
     CACHING,
@@ -18,8 +19,18 @@ export abstract class StatusBar {
 	private static maxIndexingFile = 0;
 	private static maxCachingFile = 0;
 
+	private static paused = false;
+
 	static setupStatusBar(parentHTML: HTMLElement) {
 		StatusBar.parentHTML = parentHTML;
+		StatusBar.parentHTML.onclick = () => {
+			if(OcrQueue.getQueue().paused)
+				OcrQueue.getQueue().resume();
+			else
+				OcrQueue.getQueue().pause();
+			StatusBar.paused = OcrQueue.getQueue().paused;
+			StatusBar.updateText();
+		};
 	}
 
 	static addStatusDeleting() {
@@ -78,7 +89,7 @@ export abstract class StatusBar {
 	private static statusToString(status: STATUS) {
 		if (status == STATUS.INDEXING) {
 			StatusBar.parentHTML.createSpan({
-				text: `🔎 Indexing (${StatusBar.maxIndexingFile - StatusBar.indexingFiles.length}/${StatusBar.maxIndexingFile})`,
+				text: `${StatusBar.paused ? "⏸️" : ""}🔎 Indexing (${StatusBar.maxIndexingFile - StatusBar.indexingFiles.length}/${StatusBar.maxIndexingFile})`,
 				cls: "bar-element"
 			});
 			const progress = StatusBar.parentHTML.createEl("progress", {

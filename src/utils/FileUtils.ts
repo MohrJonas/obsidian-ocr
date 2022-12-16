@@ -3,6 +3,7 @@ import {Settings} from "../Settings";
 import {globby} from "globby";
 import DBManager from "../db/DBManager";
 import {isAbsolute, relative} from "path";
+import {TFolder} from "obsidian";
 
 
 /**
@@ -62,9 +63,9 @@ export async function getAllJsonFiles(cwd: string): Promise<Array<File>> {
  * @param file The file to check
  * @return true, if the file is in an ignored folder, false otherwise
  * */
-export function isFileInIgnoredFolder(file: File): boolean {
+export function isFileInIgnoredFolder(file: File | TFolder): boolean {
 	return DBManager.getAllIgnoredFolders().filter((result) => {
-		const relativePath = relative(result.path, file.vaultRelativePath);
+		const relativePath = relative(result.path, (file instanceof File) ? file.vaultRelativePath : file.path);
 		return relativePath && !relativePath.startsWith("..") && !isAbsolute(relativePath);
 	}).length != 0;
 }

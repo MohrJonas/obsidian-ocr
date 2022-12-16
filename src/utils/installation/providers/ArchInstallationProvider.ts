@@ -1,5 +1,5 @@
-import InstallationProvider from "./InstallationProvider";
-import {doesProgramExist} from "../Utils";
+import InstallationProvider from "../InstallationProvider";
+import {doesProgramExist} from "../../Utils";
 import ansiColors from "ansi-colors";
 import {exec} from "sudo-prompt";
 import {Terminal} from "xterm";

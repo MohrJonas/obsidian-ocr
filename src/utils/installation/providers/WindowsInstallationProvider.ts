@@ -1,4 +1,4 @@
-import InstallationProvider from "./InstallationProvider";
+import InstallationProvider from "../InstallationProvider";
 import {Terminal} from "xterm";
 import {exec} from "sudo-prompt";
 import ansiColors from "ansi-colors";

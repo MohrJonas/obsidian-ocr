@@ -8,6 +8,7 @@ import InstallationProviderManager from "./utils/installation/InstallationProvid
 import TerminalModal from "./modals/TerminalModal";
 import ObsidianOCRPlugin from "./Main";
 import SimpleLogger from "simple-node-logger";
+import ReindexingModal from "./modals/ReindexingModal";
 
 /**
  * Settings tab
@@ -15,10 +16,17 @@ import SimpleLogger from "simple-node-logger";
 export class SettingsTab extends PluginSettingTab {
 
 	private readonly plugin: Plugin;
+	private initialProviderName = SettingsManager.currentSettings.ocrProviderName;
 
 	constructor(app: App, plugin: Plugin) {
 		super(app, plugin);
 		this.plugin = plugin;
+	}
+
+	override hide() {
+		super.hide();
+		if(this.initialProviderName != SettingsManager.currentSettings.ocrProviderName)
+			new ReindexingModal(app).open();
 	}
 
 	override async display() {

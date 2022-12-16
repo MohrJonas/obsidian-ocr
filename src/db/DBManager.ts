@@ -229,6 +229,13 @@ export default class DBManager {
 		ObsidianOCRPlugin.logger.info("Resetting DB");
 		DBManager.DB.run("DROP TABLE IF EXISTS pages");
 		DBManager.DB.run("DROP TABLE IF EXISTS transcripts");
+		DBManager.DB.run("DROP TABLE IF EXISTS settings");
+		DBManager.DB.run("DROP TABLE IF EXISTS ignored_folders");
+	}
+
+	static deleteAllTranscripts() {
+		DBManager.DB.run("DELETE FROM pages");
+		DBManager.DB.run("DELETE FROM transcripts");
 	}
 
 	/**

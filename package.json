@@ -50,6 +50,7 @@
 		"npm-check-updates": "^16.3.16",
 		"pdf-lib": "^1.17.1",
 		"randomstring": "^1.2.3",
+		"sanitize-filename": "^1.6.3",
 		"simple-node-logger": "^21.8.12",
 		"sql.js": "^1.8.0",
 		"sudo-prompt": "^9.2.1",

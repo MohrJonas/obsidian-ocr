@@ -7,6 +7,8 @@ import {join} from "path";
 import exec from "@simplyhexagonal/exec";
 import ObsidianOCRPlugin from "./Main";
 import {globby} from "globby";
+import moment from "moment/moment";
+import sanitize from "sanitize-filename";
 
 /**
  * Convert a file from a pdf to a png
@@ -27,11 +29,12 @@ export async function convertPdfToPng(file: File, density: number, quality: numb
 		platformSpecific = "convert";
 		break;
 	}
-	const randomFolderName = generate({
-		length: 32,
+	const randomPiece = generate({
+		length: 4,
 		charset: "alphanumeric"
 	});
-	const randomFolderPath = join(tmpdir(), randomFolderName);
+	const folderName = sanitize(`${moment().format("YYYY-M-D-H.m")}-${randomPiece}-${file.tFile.basename}`);
+	const randomFolderPath = join(tmpdir(), folderName);
 	await mkdir(randomFolderPath);
 	ObsidianOCRPlugin.logger.info(`Converting pdf ${file.absPath} to png(s) in ${randomFolderPath}`);
 	const command = `${platformSpecific} -density ${density} -quality ${quality} -background white -alpha remove -alpha off ${additionalImagemagickArgs} "${file.absPath}" "${join(randomFolderPath, "out.png")}"`;

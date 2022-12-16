@@ -12,8 +12,8 @@ import {areDepsMet} from "./Convert";
 import {OcrQueue} from "./utils/OcrQueue";
 import {ChildProcess} from "child_process";
 import InstallationProviderManager from "./utils/installation/InstallationProviderManager";
-import WindowsInstallationProvider from "./utils/installation/WindowsInstallationProvider";
-import DebInstallationProvider from "./utils/installation/DebInstallationProvider";
+import WindowsInstallationProvider from "./utils/installation/providers/WindowsInstallationProvider";
+import DebInstallationProvider from "./utils/installation/providers/DebInstallationProvider";
 import Tips from "./Tips";
 import DBManager from "./db/DBManager";
 import {isFileInIgnoredFolder, isFileValid, shouldFileBeOCRed} from "./utils/FileUtils";
@@ -21,7 +21,7 @@ import SimpleLogger, {createSimpleFileLogger, createSimpleLogger, STANDARD_LEVEL
 import {join} from "path";
 import SettingsModal from "./modals/SettingsModal";
 import TestSuite from "./utils/TestSuite";
-import ArchInstallationProvider from "./utils/installation/ArchInstallationProvider";
+import ArchInstallationProvider from "./utils/installation/providers/ArchInstallationProvider";
 
 export default class ObsidianOCRPlugin extends Plugin {
 
@@ -136,9 +136,8 @@ export default class ObsidianOCRPlugin extends Plugin {
 				if (StatusBar.hasStatus(STATUS.INDEXING))
 					new Notice("Deleting is not available while indexing");
 				else {
-					DBManager.resetDB();
-					await DBManager.initDB();
 					await removeAllJsonFiles();
+					DBManager.deleteAllTranscripts();
 					processVault(SettingsManager.currentSettings);
 				}
 			},

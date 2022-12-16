@@ -95,6 +95,7 @@ export default class ObsidianOCRPlugin extends Plugin {
 								.onClick(async () => {
 									DBManager.removeIgnoredFolderById(result.id);
 									await DBManager.saveDB();
+									processVault(SettingsManager.currentSettings);
 								});
 							if (isFileInIgnoredFolder(file))
 								item.setDisabled(true);

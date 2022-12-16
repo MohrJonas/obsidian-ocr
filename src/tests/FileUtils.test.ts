@@ -12,7 +12,6 @@ const settings: Settings = {
 	ocrImage: true,
 	ocrPDF: true,
 	concurrentIndexingProcesses: 1,
-	concurrentCachingProcesses: 10,
 	additionalSearchPath: "",
 	density: 300,
 	quality: 98,

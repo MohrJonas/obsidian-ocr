@@ -1,6 +1,5 @@
 import {Setting, SuggestModal, TFile} from "obsidian";
 import SettingsManager from "../Settings";
-import {STATUS, StatusBar} from "../StatusBar";
 import ImageModal from "./ImageModal";
 import DBManager from "../db/DBManager";
 import {SQLResultPage} from "../db/SQLResultPage";
@@ -16,9 +15,6 @@ export default class SearchModal extends SuggestModal<SQLResultPage> {
 
 	constructor() {
 		super(app);
-		if (StatusBar.hasStatus(STATUS.CACHING)) {
-			this.modalEl.createEl("strong", {text: "Search results are incomplete while caching"}).id = "suggestion-indexing-warning";
-		}
 		new Setting(this.modalEl)
 			.setName("Fuzzy search")
 			.setDesc("Enable or disable fuzzy search")

@@ -2,7 +2,6 @@ import {App, Notice, Plugin, PluginSettingTab, Setting} from "obsidian";
 import SettingsManager from "./Settings";
 import OCRProviderManager from "./ocr/OCRProviderManager";
 import {OcrQueue} from "./utils/OcrQueue";
-import TranscriptCache from "./TranscriptCache";
 import {delimiter} from "path";
 import {areDepsMet} from "./Convert";
 import InstallationProviderManager from "./utils/installation/InstallationProviderManager";
@@ -34,16 +33,6 @@ export class SettingsTab extends PluginSettingTab {
 				await SettingsManager.saveSettings();
 			});
 		}).setName("Max OCR Processes").setDesc("Set the maximum number of concurrent OCR processes");
-		new Setting(this.containerEl).addSlider((slider) => {
-			slider.setLimits(1, 100, 1);
-			slider.setValue(SettingsManager.currentSettings.concurrentCachingProcesses);
-			slider.setDynamicTooltip();
-			slider.onChange(async (value) => {
-				SettingsManager.currentSettings.concurrentCachingProcesses = value;
-				TranscriptCache.changeMaxProcesses(value);
-				await SettingsManager.saveSettings();
-			});
-		}).setName("Max Caching Processes").setDesc("Set the maximum number of concurrent caching processes");
 		new Setting(this.containerEl).addToggle((tc) => {
 			tc.setValue(SettingsManager.currentSettings.ocrImage);
 			tc.onChange(async (value) => {

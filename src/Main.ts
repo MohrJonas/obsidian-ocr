@@ -133,9 +133,7 @@ export default class ObsidianOCRPlugin extends Plugin {
 			id: "delete-json",
 			name: "Delete all transcripts",
 			callback: async () => {
-				if (StatusBar.hasStatus(STATUS.CACHING))
-					new Notice("Deleting is not available while caching");
-				else if (StatusBar.hasStatus(STATUS.INDEXING))
+				if (StatusBar.hasStatus(STATUS.INDEXING))
 					new Notice("Deleting is not available while indexing");
 				else {
 					DBManager.resetDB();

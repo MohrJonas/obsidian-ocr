@@ -10,7 +10,6 @@ export interface Settings {
 	ocrImage: boolean;
 	ocrPDF: boolean;
 	concurrentIndexingProcesses: number;
-	concurrentCachingProcesses: number;
 	additionalSearchPath: string;
 	density: number;
 	quality: number;
@@ -33,7 +32,6 @@ export default abstract class SettingsManager {
 		ocrImage: true,
 		ocrPDF: true,
 		concurrentIndexingProcesses: 1,
-		concurrentCachingProcesses: 10,
 		additionalSearchPath: "",
 		density: 300,
 		quality: 98,

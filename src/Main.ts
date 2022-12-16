@@ -16,7 +16,7 @@ import WindowsInstallationProvider from "./utils/installation/WindowsInstallatio
 import DebInstallationProvider from "./utils/installation/DebInstallationProvider";
 import Tips from "./Tips";
 import DBManager from "./db/DBManager";
-import {shouldFileBeOCRed, isFileValid} from "./utils/FileUtils";
+import {isFileValid, shouldFileBeOCRed} from "./utils/FileUtils";
 import SimpleLogger, {createSimpleFileLogger, createSimpleLogger, STANDARD_LEVELS} from "simple-node-logger";
 import {join} from "path";
 import SettingsModal from "./modals/SettingsModal";
@@ -81,15 +81,31 @@ export default class ObsidianOCRPlugin extends Plugin {
 		});
 		this.registerEvent(
 			this.app.workspace.on("file-menu", (menu, file) => {
-				if (file instanceof TFolder || !["png", "pdf", "jpg", "jpeg"].contains((file as TFile).extension) || !DBManager.doesTranscriptWithPathExist((file as TFile).path))
-					return;
-				menu.addItem((item) => {
-					item.setTitle("Custom OCR settings")
-						.setIcon("note-glyph")
-						.onClick(() => {
-							new SettingsModal(file.path).open();
-						});
-				});
+				if (file instanceof TFolder)
+					menu.addItem((item) => {
+						item.setIcon("note-glyph");
+						const result = DBManager.getIgnoredFolderByPath(file.path);
+						if (result)
+							item.setTitle("Unignore folder for OCR")
+								.onClick(async () => {
+									DBManager.removeIgnoredFolderById(result.id);
+									await DBManager.saveDB();
+								});
+						else
+							item.setTitle("Ignore folder for OCR")
+								.onClick(async () => {
+									DBManager.addIgnoredFolder(file.path);
+									await DBManager.saveDB();
+								});
+					});
+				else if (DBManager.doesTranscriptWithPathExist((file as TFile).path))
+					menu.addItem((item) => {
+						item.setTitle("Custom OCR settings")
+							.setIcon("note-glyph")
+							.onClick(() => {
+								new SettingsModal(file.path).open();
+							});
+					});
 			})
 		);
 		this.addSettingTab(new SettingsTab(this.app, this));

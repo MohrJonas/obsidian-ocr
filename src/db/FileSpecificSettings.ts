@@ -8,7 +8,6 @@ export default class FileSpecificSettings {
 		public imageDensity: number,
 		public imageQuality: number,
 		public imagemagickArgs: string,
-		public ignore: boolean
 	) {
 	}
 
@@ -17,7 +16,6 @@ export default class FileSpecificSettings {
 			300,
 			98,
 			"",
-			false
 		);
 	}
 }

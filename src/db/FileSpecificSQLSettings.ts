@@ -10,6 +10,5 @@ export default class FileSpecificSQLSettings {
         public readonly imageDensity: number,
         public readonly imageQuality: number,
         public readonly imagemagickArgs: string,
-		public readonly ignore: boolean
 	) {}
 }

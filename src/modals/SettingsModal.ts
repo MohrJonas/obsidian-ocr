@@ -3,6 +3,7 @@ import FileSpecificSettings from "../db/FileSpecificSettings";
 import DBManager from "../db/DBManager";
 import {FILE_TYPE, getFileType} from "../utils/FileUtils";
 import File from "../File";
+import {OcrQueue} from "../utils/OcrQueue";
 
 /**
  * Modal used to display and change transcript-specific settings
@@ -45,12 +46,6 @@ export default class SettingsModal extends Modal {
 				});
 			}).setName("Additional imagemagick args")
 				.setDesc("Additional args passed to imagemagick when converting PDF to PNGs");
-		new Setting(this.contentEl).addToggle((tc) => {
-			tc.setValue(this.settings.ignore);
-			tc.onChange((value) => {
-				this.settings.ignore = value;
-			});
-		}).setName("Ignore file").setDesc("Ignore this file for OCR");
 		new Setting(this.contentEl).addButton(bc => {
 			bc.setButtonText("Cancel");
 			bc.setWarning();
@@ -72,6 +67,16 @@ export default class SettingsModal extends Modal {
 				const transcript = DBManager.getTranscriptByPath(this.filePath);
 				DBManager.setSettingsByTranscriptId(transcript.transcriptId, this.settings);
 				await DBManager.saveDB();
+				this.close();
+			});
+		}).addButton((bc) => {
+			bc.setButtonText("Save and reindex");
+			bc.onClick(async () => {
+				const transcript = DBManager.getTranscriptByPath(this.filePath);
+				DBManager.setSettingsByTranscriptId(transcript.transcriptId, this.settings);
+				await DBManager.saveDB();
+				DBManager.removeSettingsByTranscriptId(transcript.transcriptId);
+				await OcrQueue.enqueueFile(File.fromVaultRelativePath(transcript.relativePath));
 				this.close();
 			});
 		});

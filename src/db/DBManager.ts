@@ -10,6 +10,7 @@ import {SQLResultPage} from "./SQLResultPage";
 import {SQLResultTranscript} from "./SQLResultTranscript";
 import FileSpecificSettings from "./FileSpecificSettings";
 import FileSpecificSQLSettings from "./FileSpecificSQLSettings";
+import SQLResultFolder from "./SQLResultFolder";
 
 /**
  * Abstraction layer between a sqlite database and Obsidian
@@ -130,7 +131,7 @@ export default class DBManager {
 			":id": id
 		}));
 		if(!row) return undefined;
-		return new FileSpecificSQLSettings(row[0] as number, row[1] as number, row[2] as number, row[3] as number, row[4] as string, row[5] as number == 1);
+		return new FileSpecificSQLSettings(row[0] as number, row[1] as number, row[2] as number, row[3] as number, row[4] as string);
 	}
 
 	/**
@@ -143,12 +144,11 @@ export default class DBManager {
 		DBManager.DB.run("DELETE FROM settings WHERE transcript_id = :id", {
 			":id": id
 		});
-		DBManager.DB.run("INSERT INTO settings (transcript_id, image_density, image_quality, imagemagick_args, ignore) VALUES (:transcriptId, :imageQuality, :imageDensity, :imagemagickArgs, :ignore)", {
+		DBManager.DB.run("INSERT INTO settings (transcript_id, image_density, image_quality, imagemagick_args) VALUES (:transcriptId, :imageQuality, :imageDensity, :imagemagickArgs)", {
 			":transcriptId": id,
 			":imageQuality": settings.imageQuality,
 			":imageDensity": settings.imageDensity,
 			":imagemagickArgs": settings.imagemagickArgs,
-			":ignore": settings.ignore ? 1 : 0
 		});
 	}
 
@@ -241,6 +241,35 @@ export default class DBManager {
 		});
 	}
 
+	static addIgnoredFolder(vaultRelativePath: string) {
+		ObsidianOCRPlugin.logger.info(`Adding ignored folder with path ${vaultRelativePath}`);
+		DBManager.DB.run("INSERT INTO ignored_folders (relative_path) VALUES (:path)", {
+			":path": vaultRelativePath
+		});
+	}
+
+	static removeIgnoredFolderById(id: number) {
+		ObsidianOCRPlugin.logger.debug(`Deleting ignored folder with id ${id}`);
+		DBManager.DB.run("DELETE FROM ignored_folders WHERE folder_id = :id", {
+			":id": id
+		});
+	}
+
+	static getIgnoredFolderByPath(vaultRelativePath: string): SQLResultFolder | undefined {
+		ObsidianOCRPlugin.logger.info(`Fetching ignored folder with path ${vaultRelativePath}`);
+		const row = DBManager.unwrapSafe(DBManager.DB.exec("SELECT * FROM ignored_folders WHERE relative_path = :path;", {
+			":path": vaultRelativePath
+		}));
+		if(!row) return undefined;
+		return new SQLResultFolder(row[0] as number, row[1] as string);
+	}
+
+	static getAllIgnoredFolders(): Array<SQLResultFolder> {
+		ObsidianOCRPlugin.logger.info("Fetching all ignored folders");
+		const result = DBManager.DB.exec("SELECT * FROM ignored_folders;");
+		return result[0].values.map((row) => { return new SQLResultFolder(row[0] as number, row[1] as string); });
+	}
+
 	private static unwrapSafe(result: Array<initSqlJs.QueryExecResult>): Array<initSqlJs.SqlValue> | undefined {
 		if(result.length == 0) return undefined;
 		return result[0].values[0];
@@ -276,9 +305,14 @@ export default class DBManager {
                 image_density    integer,
                 image_quality    integer,
                 imagemagick_args text,
-                ignore           integer,
                 FOREIGN KEY (transcript_id) REFERENCES transcripts (transcript_id) ON DELETE CASCADE
             );
+
+			CREATE TABLE IF NOT EXISTS ignored_folders
+			(
+                folder_id        integer PRIMARY KEY AUTOINCREMENT,
+                relative_path    text
+			);
 		`);
 		await DBManager.saveDB();
 	}

@@ -50,7 +50,7 @@ export default class SearchModal extends SuggestModal<SQLResultPage> {
 		if (SettingsManager.currentSettings.fuzzySearch)
 			return this.pages
 				.map((page) => {
-					return {"page": page, "text": SettingsManager.currentSettings.caseSensitive ? page.transcriptText.toLowerCase() : page.transcriptText};
+					return {"page": page, "text": SettingsManager.currentSettings.caseSensitive ? page.transcriptText : page.transcriptText.toLowerCase()};
 				})
 				.filter((pageObj) => {
 					return pageObj.text != "";
@@ -59,7 +59,7 @@ export default class SearchModal extends SuggestModal<SQLResultPage> {
 					let min = Number.MAX_VALUE;
 					for (let i = 0; i < pageObj.text.length - query.length; i += 2) {
 						const substring = pageObj.text.substring(i, i + query.length);
-						min = Math.min(min, distance(SettingsManager.currentSettings.caseSensitive ? query.toLowerCase() : query, substring));
+						min = Math.min(min, distance(SettingsManager.currentSettings.caseSensitive ? query : query.toLowerCase(), substring));
 					}
 					return {"page": pageObj.page, "difference": min};
 				})

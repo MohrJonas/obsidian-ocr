@@ -1,4 +1,5 @@
 import OCRProvider from "../OCRProvider";
+import ObsidianOCRPlugin from "../../Main";
 
 /**
  * No-operation implementation of {@link OCRProvider}
@@ -13,7 +14,8 @@ export default class NoOpOCRProvider implements OCRProvider {
 		element.createEl("div", {text: "NoOp-Provider (No Operation) doesn't do anything. Choose another provider from the dropdown."});
 	}
 
-	async performOCR(): Promise<Array<string> | undefined> {
+	async performOCR(): Promise<Array<string>> {
+		ObsidianOCRPlugin.logger.info("Performing OCR with NoOp");
 		// language=HTML
 		return [`<?xml version="1.0" encoding="UTF-8"?>
 			<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"

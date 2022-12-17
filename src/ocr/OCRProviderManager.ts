@@ -17,6 +17,7 @@ export default abstract class OCRProviderManager {
 	 * @param providers provider(s) to register
 	 * */
 	static registerOCRProviders(...providers: Array<OCRProvider>) {
+		ObsidianOCRPlugin.logger.info(`Registering provider(s) ${providers.map((provider) => {return provider.getProviderName();})}`);
 		OCRProviderManager.ocrProviders.push(...providers);
 	}
 
@@ -25,6 +26,7 @@ export default abstract class OCRProviderManager {
 	 * @param provider the provider to deregister
 	 * */
 	static deregisterOCRProvider(provider: OCRProvider) {
+		ObsidianOCRPlugin.logger.info(`Deregistering provider ${provider.getProviderName()}`);
 		OCRProviderManager.ocrProviders.remove(provider);
 	}
 
@@ -34,6 +36,7 @@ export default abstract class OCRProviderManager {
 	 * @return the fitting provider, or undefined if none were found
 	 * */
 	static getByName(name: string): OCRProvider {
+		ObsidianOCRPlugin.logger.debug(`Returning provider with name ${name}`);
 		return OCRProviderManager.ocrProviders.filter((ocrProvider) => {
 			return ocrProvider.getProviderName() == name;
 		})[0];

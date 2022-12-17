@@ -4,6 +4,7 @@ import ImageModal from "./ImageModal";
 import DBManager from "../db/DBManager";
 import {SQLResultPage} from "../db/SQLResultPage";
 import {distance} from "fastest-levenshtein";
+import ObsidianOCRPlugin from "../Main";
 
 /**
  * Modal used to search in transcripts
@@ -42,6 +43,7 @@ export default class SearchModal extends SuggestModal<SQLResultPage> {
 	getSuggestions(query: string): SQLResultPage[] | Promise<SQLResultPage[]> {
 		this.query = query;
 		if (!query || query.length < 3) return [];
+		ObsidianOCRPlugin.logger.debug(`Query is ${query}`);
 		if (!this.pages) this.pages = DBManager.getAllPages();
 		if (SettingsManager.currentSettings.fuzzySearch)
 			return this.pages
@@ -93,6 +95,7 @@ export default class SearchModal extends SuggestModal<SQLResultPage> {
 	}
 
 	async onChooseSuggestion(page: SQLResultPage) {
+		ObsidianOCRPlugin.logger.info(`Opening file ${DBManager.getTranscriptById(page.transcriptId).relativePath}`);
 		await this.app.workspace.getLeaf(false).openFile(this.app.vault.getAbstractFileByPath(DBManager.getTranscriptById(page.transcriptId).relativePath) as TFile, {
 			eState: {
 				subpath: `#page=${page.pageNum + 1}`

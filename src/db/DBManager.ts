@@ -140,7 +140,7 @@ export default class DBManager {
 	 * @param settings The settings to save
 	 * */
 	static setSettingsByRelativePath(path: string, settings: FileSpecificSettings) {
-		ObsidianOCRPlugin.logger.info(`Setting settings with path ${path} to ${settings}`);
+		ObsidianOCRPlugin.logger.info(`Setting settings with path ${path} to ${JSON.stringify(settings)}`);
 		DBManager.DB.run("DELETE FROM settings WHERE relative_path = :path", {
 			":path": path
 		});
@@ -234,6 +234,7 @@ export default class DBManager {
 	}
 
 	static deleteAllTranscripts() {
+		ObsidianOCRPlugin.logger.info("Deleting all transcripts");
 		DBManager.DB.run("DELETE FROM pages");
 		DBManager.DB.run("DELETE FROM transcripts");
 	}
@@ -243,6 +244,7 @@ export default class DBManager {
 	 * @param path The path to remove with
 	 * */
 	static removeSettingsByRelativePath(path: string) {
+		ObsidianOCRPlugin.logger.info("Removing settings with path ${path}");
 		DBManager.DB.run("DELETE FROM settings WHERE relative_path = :path", {
 			":path": path
 		});
@@ -256,14 +258,14 @@ export default class DBManager {
 	}
 
 	static removeIgnoredFolderById(id: number) {
-		ObsidianOCRPlugin.logger.debug(`Deleting ignored folder with id ${id}`);
+		ObsidianOCRPlugin.logger.info(`Deleting ignored folder with id ${id}`);
 		DBManager.DB.run("DELETE FROM ignored_folders WHERE folder_id = :id", {
 			":id": id
 		});
 	}
 
 	static getIgnoredFolderByPath(vaultRelativePath: string): SQLResultFolder | undefined {
-		ObsidianOCRPlugin.logger.info(`Fetching ignored folder with path ${vaultRelativePath}`);
+		ObsidianOCRPlugin.logger.debug(`Fetching ignored folder with path ${vaultRelativePath}`);
 		const row = DBManager.unwrapSafe(DBManager.DB.exec("SELECT * FROM ignored_folders WHERE relative_path = :path;", {
 			":path": vaultRelativePath
 		}));
@@ -272,7 +274,7 @@ export default class DBManager {
 	}
 
 	static getAllIgnoredFolders(): Array<SQLResultFolder> {
-		ObsidianOCRPlugin.logger.info("Fetching all ignored folders");
+		ObsidianOCRPlugin.logger.debug("Fetching all ignored folders");
 		const result = DBManager.DB.exec("SELECT * FROM ignored_folders;");
 		const results = result[0];
 		if(!results) return [];

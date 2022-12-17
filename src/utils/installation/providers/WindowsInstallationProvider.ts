@@ -3,6 +3,7 @@ import {Terminal} from "xterm";
 import {exec} from "sudo-prompt";
 import ansiColors from "ansi-colors";
 import {platform} from "os";
+import ObsidianOCRPlugin from "../../../Main";
 
 /**
  * Automated dependency installation on Windows using chocolatey
@@ -10,6 +11,7 @@ import {platform} from "os";
 export default class WindowsInstallationProvider implements InstallationProvider {
 
 	async installDependencies(terminal: Terminal) {
+		ObsidianOCRPlugin.logger.info("Running automatic installation with WindowsInstallationProvider");
 		terminal.writeln(ansiColors.green("Installing chocolatey"));
 		exec("powershell.exe -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command \"[System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))\" && SET \"PATH=%PATH%;%ALLUSERSPROFILE%\\chocolatey\\bin\"", (error, stdout, stderr) => {
 			terminal.writeln(stdout.toString());

@@ -3,10 +3,12 @@ import {doesProgramExist} from "../../Utils";
 import ansiColors from "ansi-colors";
 import {exec} from "sudo-prompt";
 import {Terminal} from "xterm";
+import ObsidianOCRPlugin from "../../../Main";
 
 export default class ArchInstallationProvider implements InstallationProvider {
 
 	installDependencies(terminal: Terminal): void {
+		ObsidianOCRPlugin.logger.info("Running automatic installation with ArchInstallationProvider");
 		terminal.writeln(ansiColors.green("Installing tesseract and imagemagick"));
 		exec("pacman -Syy && pacman -S tesseract imagemagick ", (error, stdout, stderr) => {
 			terminal.writeln(stdout.toString());

@@ -3,6 +3,7 @@ import {Terminal} from "xterm";
 import ansiColors from "ansi-colors";
 import {exec} from "sudo-prompt";
 import {doesProgramExist} from "../../Utils";
+import ObsidianOCRPlugin from "../../../Main";
 
 /**
  * Automated dependency installation on all apt-based Linux distros (Debian, Ubuntu,...)
@@ -10,6 +11,7 @@ import {doesProgramExist} from "../../Utils";
 export default class DebInstallationProvider implements InstallationProvider {
 
 	async installDependencies(terminal: Terminal) {
+		ObsidianOCRPlugin.logger.info("Running automatic installation with DebInstallationProvider");
 		terminal.writeln(ansiColors.green("Installing tesseract and imagemagick"));
 		exec("DEBIAN_FRONTEND=noninteractive apt update -y && apt install -y tesseract imagemagick", (error, stdout, stderr) => {
 			terminal.writeln(stdout.toString());

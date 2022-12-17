@@ -145,7 +145,7 @@ documents by using the `Delete all transcripts` command ℹ
 
 Tesseract supports `langs` and `scripts` for text recognition.
 - Langs support a single language
-- Scripts support multiple languages with the similar characters. Latin, for example, supports all latin-based languages (English, German, Italian, France, ...) except for Vietnamese
+- Scripts support multiple languages with similar characters. Latin, for example, supports all latin-based languages (English, German, Italian, France, ...) except for Vietnamese
 
 #### Custom OCR providers
 

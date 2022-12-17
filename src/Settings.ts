@@ -1,6 +1,8 @@
 import {Plugin} from "obsidian";
 import OCRProvider from "./ocr/OCRProvider";
 import SimpleLogger from "simple-node-logger";
+import {areDepsMet} from "./Convert";
+import OCRProviderManager from "./ocr/OCRProviderManager";
 
 export interface Settings {
 	ocrProviderName: string;
@@ -29,8 +31,8 @@ export default abstract class SettingsManager {
 		ocrProviderSettings: {},
 		fuzzySearch: true,
 		caseSensitive: false,
-		ocrImage: true,
-		ocrPDF: true,
+		ocrImage: false,
+		ocrPDF: false,
 		concurrentIndexingProcesses: 1,
 		additionalSearchPath: "",
 		density: 300,
@@ -38,7 +40,7 @@ export default abstract class SettingsManager {
 		additionalImagemagickArgs: "",
 		showTips: true,
 		logToFile: false,
-		logLevel: "all"
+		logLevel: "warn"
 	};
 
 	static async loadSettings(plugin: Plugin) {
@@ -57,6 +59,14 @@ export default abstract class SettingsManager {
 
 	static getOCRProviderSettings(provider: OCRProvider): Record<string, unknown> | undefined {
 		return SettingsManager.currentSettings.ocrProviderSettings[provider.getProviderName()];
+	}
+
+	/**
+	 * Validate the current settings, meaning checking if the selected OCR provider is still usable and ImageMagick is still installed
+	 * */
+	static async validateSettings() {
+		SettingsManager.currentSettings.ocrPDF = await areDepsMet() ? SettingsManager.currentSettings.ocrPDF : false;
+		SettingsManager.currentSettings.ocrProviderName = await OCRProviderManager.getByName(SettingsManager.currentSettings.ocrProviderName).isUsable() ? SettingsManager.currentSettings.ocrProviderName : OCRProviderManager.getByName("NoOp").getProviderName();
 	}
 }
 

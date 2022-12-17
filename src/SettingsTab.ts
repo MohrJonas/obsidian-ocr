@@ -1,5 +1,5 @@
 import {App, Notice, Plugin, PluginSettingTab, Setting} from "obsidian";
-import SettingsManager from "./Settings";
+import SettingsManager, {Settings} from "./Settings";
 import OCRProviderManager from "./ocr/OCRProviderManager";
 import {OcrQueue} from "./utils/OcrQueue";
 import {delimiter} from "path";
@@ -9,6 +9,7 @@ import TerminalModal from "./modals/TerminalModal";
 import ObsidianOCRPlugin from "./Main";
 import SimpleLogger from "simple-node-logger";
 import ReindexingModal from "./modals/ReindexingModal";
+import {cloneDeep, isEqual} from "lodash";
 
 /**
  * Settings tab
@@ -16,7 +17,7 @@ import ReindexingModal from "./modals/ReindexingModal";
 export class SettingsTab extends PluginSettingTab {
 
 	private readonly plugin: Plugin;
-	private initialProviderName = SettingsManager.currentSettings.ocrProviderName;
+	private initialSettings: Settings;
 
 	constructor(app: App, plugin: Plugin) {
 		super(app, plugin);
@@ -25,11 +26,19 @@ export class SettingsTab extends PluginSettingTab {
 
 	override hide() {
 		super.hide();
-		if(this.initialProviderName != SettingsManager.currentSettings.ocrProviderName)
-			new ReindexingModal(app).open();
+		if(
+			this.initialSettings.ocrProviderName != SettingsManager.currentSettings.ocrProviderName ||
+			!isEqual(this.initialSettings.ocrProviderSettings, SettingsManager.currentSettings.ocrProviderSettings) ||
+			this.initialSettings.ocrImage != SettingsManager.currentSettings.ocrImage ||
+			this.initialSettings.ocrPDF != SettingsManager.currentSettings.ocrPDF ||
+			this.initialSettings.density != SettingsManager.currentSettings.density ||
+			this.initialSettings.quality != SettingsManager.currentSettings.quality ||
+			this.initialSettings.additionalImagemagickArgs != SettingsManager.currentSettings.additionalImagemagickArgs
+		) new ReindexingModal(app).open();
 	}
 
 	override async display() {
+		this.initialSettings = cloneDeep(SettingsManager.currentSettings);
 		this.containerEl.replaceChildren();
 		new Setting(this.containerEl).addSlider((slider) => {
 			slider.setLimits(1, 10, 1);
@@ -51,8 +60,20 @@ export class SettingsTab extends PluginSettingTab {
 		new Setting(this.containerEl).addToggle((tc) => {
 			tc.setValue(SettingsManager.currentSettings.ocrPDF);
 			tc.onChange(async (value) => {
-				SettingsManager.currentSettings.ocrPDF = value;
-				await SettingsManager.saveSettings();
+				if(value) {
+					if(await areDepsMet()) {
+						SettingsManager.currentSettings.ocrPDF = value;
+						await SettingsManager.saveSettings();
+					}
+					else {
+						new Notice("Install ImageMagick to OCR PDFs");
+						tc.setValue(false);
+					}
+				}
+				else {
+					SettingsManager.currentSettings.ocrPDF = value;
+					await SettingsManager.saveSettings();
+				}
 			});
 		}).setName("OCR PDF").setDesc("Whether PDFs should be OCRed");
 		new Setting(this.containerEl).addSlider((slider) => {

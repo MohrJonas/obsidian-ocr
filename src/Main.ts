@@ -8,7 +8,6 @@ import TesseractOCRProvider from "./ocr/providers/TesseractOCRProvider";
 import File from "./File";
 import {processVault, removeAllJsonFiles} from "./utils/FileOps";
 import SearchModal from "./modals/SearchModal";
-import {areDepsMet} from "./Convert";
 import {OcrQueue} from "./utils/OcrQueue";
 import {ChildProcess} from "child_process";
 import InstallationProviderManager from "./utils/installation/InstallationProviderManager";
@@ -34,6 +33,7 @@ export default class ObsidianOCRPlugin extends Plugin {
     */
 	override async onload() {
 		await SettingsManager.loadSettings(this);
+		await SettingsManager.validateSettings();
 		ObsidianOCRPlugin.logger = SettingsManager.currentSettings.logToFile
 			? createSimpleFileLogger(join((app.vault.adapter as FileSystemAdapter).getBasePath(), "obsidian-ocr.log"))
 			: createSimpleLogger();
@@ -73,10 +73,6 @@ export default class ObsidianOCRPlugin extends Plugin {
 			if (SettingsManager.currentSettings.showTips) Tips.showRandomTip();
 			if (SettingsManager.currentSettings.ocrProviderName == "NoOp")
 				new Notice("Don't forget to select an OCR Provider in the settings.");
-			if (await areDepsMet())
-				processVault(SettingsManager.currentSettings);
-			else
-				new Notice("Dependencies aren't met");
 		});
 		this.app.workspace.on("quit", () => {
 			ObsidianOCRPlugin.children.forEach((child) => {

@@ -33,7 +33,6 @@ export default class ObsidianOCRPlugin extends Plugin {
     */
 	override async onload() {
 		await SettingsManager.loadSettings(this);
-		await SettingsManager.validateSettings();
 		ObsidianOCRPlugin.logger = SettingsManager.currentSettings.logToFile
 			? createSimpleFileLogger(join((app.vault.adapter as FileSystemAdapter).getBasePath(), "obsidian-ocr.log"))
 			: createSimpleLogger();
@@ -48,6 +47,7 @@ export default class ObsidianOCRPlugin extends Plugin {
 		);
 		OCRProviderManager.registerOCRProviders(new NoOpOCRProvider(), new TesseractOCRProvider());
 		await DBManager.init();
+		await SettingsManager.validateSettings();
 		this.registerEvent(this.app.vault.on("create", async (tFile) => {
 			if (tFile instanceof TFolder) return;
 			const file = File.fromFile(tFile as TFile);
@@ -73,6 +73,7 @@ export default class ObsidianOCRPlugin extends Plugin {
 			if (SettingsManager.currentSettings.showTips) Tips.showRandomTip();
 			if (SettingsManager.currentSettings.ocrProviderName == "NoOp")
 				new Notice("Don't forget to select an OCR Provider in the settings.");
+			processVault(SettingsManager.currentSettings);
 		});
 		this.app.workspace.on("quit", () => {
 			ObsidianOCRPlugin.children.forEach((child) => {
@@ -99,6 +100,12 @@ export default class ObsidianOCRPlugin extends Plugin {
 							item.setTitle("Ignore folder for OCR")
 								.onClick(async () => {
 									DBManager.addIgnoredFolder(file.path);
+									await DBManager.saveDB();
+									DBManager.getAllTranscripts().filter((transcript) => {
+										return isFileInIgnoredFolder(File.fromVaultRelativePath(transcript.relativePath));
+									}).forEach((transcript) => {
+										DBManager.removeTranscriptByPath(transcript.relativePath);
+									});
 									await DBManager.saveDB();
 								});
 							if (isFileInIgnoredFolder(file))

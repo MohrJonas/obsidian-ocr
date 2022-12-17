@@ -46,11 +46,11 @@ export default class DBManager {
 	 * */
 	static async insertTranscript(relativeFilePath: string, pages: Array<Page>) {
 		ObsidianOCRPlugin.logger.info(`Inserting transcript with path ${relativeFilePath} and ${pages.length} pages`);
-		const transcriptId = DBManager.DB.exec("INSERT INTO transcripts (relative_path, num_pages) VALUES (:path, :numPages) RETURNING transcript_id", {
+		const transcriptId = DBManager.DB.exec("INSERT OR IGNORE INTO transcripts (relative_path, num_pages) VALUES (:path, :numPages) RETURNING transcript_id", {
 			":path": relativeFilePath, ":numPages": pages.length
 		});
 		pages.forEach((page, index) => {
-			DBManager.DB.run("INSERT INTO pages (transcript_id, page_num, thumbnail, transcript_text) VALUES (:transcriptId, :pageNum, :thumbnail, :transcriptText)", {
+			DBManager.DB.run("INSERT OR IGNORE INTO pages (transcript_id, page_num, thumbnail, transcript_text) VALUES (:transcriptId, :pageNum, :thumbnail, :transcriptText)", {
 				":transcriptId": transcriptId[0].values[0][0],
 				":pageNum": index,
 				":thumbnail": page.thumbnail,
@@ -144,7 +144,7 @@ export default class DBManager {
 		DBManager.DB.run("DELETE FROM settings WHERE relative_path = :path", {
 			":path": path
 		});
-		DBManager.DB.run("INSERT INTO settings (relative_path, image_density, image_quality, imagemagick_args) VALUES (:path, :imageQuality, :imageDensity, :imagemagickArgs)", {
+		DBManager.DB.run("INSERT OR IGNORE INTO settings (relative_path, image_density, image_quality, imagemagick_args) VALUES (:path, :imageQuality, :imageDensity, :imagemagickArgs)", {
 			":path": path,
 			":imageQuality": settings.imageQuality,
 			":imageDensity": settings.imageDensity,
@@ -250,7 +250,7 @@ export default class DBManager {
 
 	static addIgnoredFolder(vaultRelativePath: string) {
 		ObsidianOCRPlugin.logger.info(`Adding ignored folder with path ${vaultRelativePath}`);
-		DBManager.DB.run("INSERT INTO ignored_folders (relative_path) VALUES (:path)", {
+		DBManager.DB.run("INSERT OR IGNORE INTO ignored_folders (relative_path) VALUES (:path)", {
 			":path": vaultRelativePath
 		});
 	}
@@ -294,7 +294,8 @@ export default class DBManager {
             (
                 transcript_id integer PRIMARY KEY AUTOINCREMENT,
                 relative_path text,
-                num_pages     integer
+                num_pages     integer,
+                UNIQUE(relative_path)
             );
 
             CREATE TABLE IF NOT EXISTS pages
@@ -313,13 +314,15 @@ export default class DBManager {
                 relative_path    text,
                 image_density    integer,
                 image_quality    integer,
-                imagemagick_args text
+                imagemagick_args text,
+                UNIQUE(relative_path)
             );
 
 			CREATE TABLE IF NOT EXISTS ignored_folders
 			(
                 folder_id        integer PRIMARY KEY AUTOINCREMENT,
-                relative_path    text
+                relative_path    text,
+                UNIQUE(relative_path)
 			);
 		`);
 		await DBManager.saveDB();

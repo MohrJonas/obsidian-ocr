@@ -36,7 +36,7 @@ export default class ObsidianOCRPlugin extends Plugin {
 		ObsidianOCRPlugin.logger = SettingsManager.currentSettings.logToFile
 			? createSimpleFileLogger(join((app.vault.adapter as FileSystemAdapter).getBasePath(), "obsidian-ocr.log"))
 			: createSimpleLogger();
-		ObsidianOCRPlugin.logger.setLevel(<STANDARD_LEVELS>SettingsManager.currentSettings.logLevel);
+		ObsidianOCRPlugin.logger.setLevel(SettingsManager.currentSettings.logToFile ? "all": <STANDARD_LEVELS>SettingsManager.currentSettings.logLevel);
 		ObsidianOCRPlugin.plugin = this;
 		OCRProviderManager.addAdditionalPaths();
 		await OCRProviderManager.applyHomebrewWorkaround();

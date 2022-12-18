@@ -16,7 +16,7 @@
 		"Imagemagick"
 	],
 	"author": "Jonas Mohr",
-	"license": "MIT",
+	"license": "GPL-3.0",
 	"devDependencies": {
 		"@types/async": "^3.2.15",
 		"@types/chai": "^4.3.4",

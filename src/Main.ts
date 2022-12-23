@@ -70,6 +70,7 @@ export default class ObsidianOCRPlugin extends Plugin {
 			await DBManager.updateTranscriptPath(oldPath, newFile.vaultRelativePath);
 		}));
 		this.app.workspace.onLayoutReady(async () => {
+			StatusBar.setupStatusBar(this.addStatusBarItem());
 			if (SettingsManager.currentSettings.showTips) Tips.showRandomTip();
 			if (SettingsManager.currentSettings.ocrProviderName == "NoOp")
 				new Notice("Don't forget to select an OCR Provider in the settings.");
@@ -155,6 +156,5 @@ export default class ObsidianOCRPlugin extends Plugin {
 				});
 			}
 		});
-		StatusBar.setupStatusBar(this.addStatusBarItem());
 	}
 }

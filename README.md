@@ -71,10 +71,21 @@ For the path: check where the binaries are located and add these to "/private/et
 
 ##### Arch / Manjaro
 
+###### Manual installation
+
 - Run `sudo pacman -S tesseract imagemagick`
 - Install any languages you need by installing the appropriate package (usually named `tesseract-data-<lang>`)
 
-Note - if Obsidian is running via the Flatpak installation (such as provided by default in Pop!_OS) then this plugin
+###### Automatic installation
+
+❗The automatic installation features is still in very early development. Expect bugs❗
+
+- Install & enable the plugin
+- Under `settings`, press the `automatic install` button
+
+#### Flatpak
+
+If Obsidian is running via the Flatpak installation (such as provided by default in Pop!_OS) then this plugin
 will not operate. Flatpak sandboxing will change the filepaths so even providing host access will still be problematic.
 If you have a Flatpak installation you will need to reinstall via a different method to successfully use this plugin.
 
@@ -129,6 +140,12 @@ By default, tesseract offers two languages to choose from: `eng` and `osd`.
 
 ℹ After switching your language, only newly indexed documents use the new language. You can reindex your already added
 documents by using the `Delete all transcripts` command ℹ
+
+###### Lang vs Script
+
+Tesseract supports `langs` and `scripts` for text recognition.
+- Langs support a single language
+- Scripts support multiple languages with similar characters. Latin, for example, supports all latin-based languages (English, German, Italian, France, ...) except for Vietnamese
 
 #### Custom OCR providers
 

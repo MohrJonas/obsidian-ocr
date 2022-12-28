@@ -1,7 +1,11 @@
 import {Plugin} from "obsidian";
 import OCRProvider from "./ocr/OCRProvider";
+import SimpleLogger from "simple-node-logger";
+import {areDepsMet} from "./Convert";
+import OCRProviderManager from "./ocr/OCRProviderManager";
+import ObsidianOCRPlugin from "./Main";
 
-interface Settings {
+export interface Settings {
 	ocrProviderName: string;
 	ocrProviderSettings: Record<string, Record<string, unknown>>;
 	fuzzySearch: boolean;
@@ -9,12 +13,13 @@ interface Settings {
 	ocrImage: boolean;
 	ocrPDF: boolean;
 	concurrentIndexingProcesses: number;
-	concurrentCachingProcesses: number;
 	additionalSearchPath: string;
 	density: number;
 	quality: number;
 	additionalImagemagickArgs: string;
 	showTips: boolean;
+	logToFile: boolean;
+	logLevel: SimpleLogger.STANDARD_LEVELS;
 }
 
 export default abstract class SettingsManager {
@@ -27,15 +32,16 @@ export default abstract class SettingsManager {
 		ocrProviderSettings: {},
 		fuzzySearch: true,
 		caseSensitive: false,
-		ocrImage: true,
-		ocrPDF: true,
+		ocrImage: false,
+		ocrPDF: false,
 		concurrentIndexingProcesses: 1,
-		concurrentCachingProcesses: 10,
 		additionalSearchPath: "",
 		density: 300,
 		quality: 98,
 		additionalImagemagickArgs: "",
-		showTips: true
+		showTips: true,
+		logToFile: false,
+		logLevel: "warn"
 	};
 
 	static async loadSettings(plugin: Plugin) {
@@ -54,6 +60,20 @@ export default abstract class SettingsManager {
 
 	static getOCRProviderSettings(provider: OCRProvider): Record<string, unknown> | undefined {
 		return SettingsManager.currentSettings.ocrProviderSettings[provider.getProviderName()];
+	}
+
+	/**
+	 * Validate the current settings, meaning checking if the selected OCR provider is still usable and ImageMagick is still installed
+	 * */
+	static async validateSettings() {
+		if(!await areDepsMet()) {
+			ObsidianOCRPlugin.logger.info(`Repairing settings ${SettingsManager.currentSettings.ocrPDF} -> false`);
+			SettingsManager.currentSettings.ocrPDF = false;
+		}
+		if(!await OCRProviderManager.getByName(SettingsManager.currentSettings.ocrProviderName).isUsable()) {
+			ObsidianOCRPlugin.logger.info(`Repairing settings ${SettingsManager.currentSettings.ocrProviderName} -> NoOp`);
+			SettingsManager.currentSettings.ocrProviderName = "NoOp";
+		}
 	}
 }
 

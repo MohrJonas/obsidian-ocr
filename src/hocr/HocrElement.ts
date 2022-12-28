@@ -1,15 +1,20 @@
 import BoundingBox from "./BoundingBox";
-import ContentArea from "./ContentArea";
-import Paragraph from "./Paragraph";
-import Word from "./Word";
-import Transcript from "./Transcript";
-import Page from "./Page";
-import Line from "./Line";
 
+/**
+ * Base class for in-code representation of hocr elements
+ * @description hocr is an open, HTML-like syntax to represent OCR results.
+ * See {@link https://wikipedia.org/wiki/HOCR} for more information
+ * */
 interface HocrElement {
-	bounds: BoundingBox | undefined;
-	parent: ContentArea | Line | Page | Paragraph | Word | Transcript | undefined;
-	children: Array<ContentArea | Line | Page | Paragraph | Word | Transcript> | undefined;
+
+    /**
+     * The bounds of the element. All elements, except {@link Transcript} have bounds
+     * */
+    bounds: BoundingBox | undefined;
+    /**
+     * The children of the element. All elements, except {@link Word} have children
+     * */
+    children: Array<HocrElement> | undefined;
 }
 
 export default HocrElement;

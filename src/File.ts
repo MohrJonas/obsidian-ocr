@@ -1,23 +1,22 @@
 import {FileSystemAdapter, TFile} from "obsidian";
 import {relative} from "path";
-import {filePathToJsonPath} from "./utils/FileUtils";
 
+/**
+ * Class representing an on-disk file with some convenience functions
+ * */
 export default class File {
 
 	private constructor(
-		public readonly extension: string,
-		public readonly vaultRelativePath: string,
-		public readonly absPath: string,
-		public readonly tFile: TFile,
-		public readonly jsonFile: File | undefined,
-		public readonly annotatedFile: File | undefined) {
+        public readonly extension: string,
+        public readonly vaultRelativePath: string,
+        public readonly absPath: string,
+        public readonly tFile: TFile) {
 	}
 
 	static fromVaultRelativePath(path: string): File {
 		const extension = path.split(".").pop();
 		if (!extension) throw new TypeError(`Unable to process file ${path} because it has no extensions`);
-		if (extension == "json") return new File(extension, path, (app.vault.adapter as FileSystemAdapter).getFullPath(path), app.vault.getAbstractFileByPath(path) as TFile, undefined, undefined);
-		return new File(extension, path, (app.vault.adapter as FileSystemAdapter).getFullPath(path), app.vault.getAbstractFileByPath(path) as TFile, File.fromVaultRelativePath(filePathToJsonPath(path)), undefined);
+		return new File(extension, path, (app.vault.adapter as FileSystemAdapter).getFullPath(path), app.vault.getAbstractFileByPath(path) as TFile);
 	}
 
 	static fromAbsPath(path: string): File {

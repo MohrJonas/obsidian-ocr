@@ -1,24 +1,44 @@
 import {App, Notice, Plugin, PluginSettingTab, Setting} from "obsidian";
-import SettingsManager from "./Settings";
+import SettingsManager, {Settings} from "./Settings";
 import OCRProviderManager from "./ocr/OCRProviderManager";
 import {OcrQueue} from "./utils/OcrQueue";
-import TranscriptCache from "./TranscriptCache";
 import {delimiter} from "path";
 import {areDepsMet} from "./Convert";
 import InstallationProviderManager from "./utils/installation/InstallationProviderManager";
 import TerminalModal from "./modals/TerminalModal";
 import ObsidianOCRPlugin from "./Main";
+import SimpleLogger from "simple-node-logger";
+import ReindexingModal from "./modals/ReindexingModal";
+import {cloneDeep, isEqual} from "lodash";
 
+/**
+ * Settings tab
+ * */
 export class SettingsTab extends PluginSettingTab {
 
 	private readonly plugin: Plugin;
+	private initialSettings: Settings;
 
 	constructor(app: App, plugin: Plugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
 
+	override hide() {
+		super.hide();
+		if(
+			this.initialSettings.ocrProviderName != SettingsManager.currentSettings.ocrProviderName ||
+			!isEqual(this.initialSettings.ocrProviderSettings, SettingsManager.currentSettings.ocrProviderSettings) ||
+			this.initialSettings.ocrImage != SettingsManager.currentSettings.ocrImage ||
+			this.initialSettings.ocrPDF != SettingsManager.currentSettings.ocrPDF ||
+			this.initialSettings.density != SettingsManager.currentSettings.density ||
+			this.initialSettings.quality != SettingsManager.currentSettings.quality ||
+			this.initialSettings.additionalImagemagickArgs != SettingsManager.currentSettings.additionalImagemagickArgs
+		) new ReindexingModal(app).open();
+	}
+
 	override async display() {
+		this.initialSettings = cloneDeep(SettingsManager.currentSettings);
 		this.containerEl.replaceChildren();
 		new Setting(this.containerEl).addSlider((slider) => {
 			slider.setLimits(1, 10, 1);
@@ -30,16 +50,6 @@ export class SettingsTab extends PluginSettingTab {
 				await SettingsManager.saveSettings();
 			});
 		}).setName("Max OCR Processes").setDesc("Set the maximum number of concurrent OCR processes");
-		new Setting(this.containerEl).addSlider((slider) => {
-			slider.setLimits(1, 100, 1);
-			slider.setValue(SettingsManager.currentSettings.concurrentCachingProcesses);
-			slider.setDynamicTooltip();
-			slider.onChange(async (value) => {
-				SettingsManager.currentSettings.concurrentCachingProcesses = value;
-				TranscriptCache.changeMaxProcesses(value);
-				await SettingsManager.saveSettings();
-			});
-		}).setName("Max Caching Processes").setDesc("Set the maximum number of concurrent caching processes");
 		new Setting(this.containerEl).addToggle((tc) => {
 			tc.setValue(SettingsManager.currentSettings.ocrImage);
 			tc.onChange(async (value) => {
@@ -50,8 +60,20 @@ export class SettingsTab extends PluginSettingTab {
 		new Setting(this.containerEl).addToggle((tc) => {
 			tc.setValue(SettingsManager.currentSettings.ocrPDF);
 			tc.onChange(async (value) => {
-				SettingsManager.currentSettings.ocrPDF = value;
-				await SettingsManager.saveSettings();
+				if(value) {
+					if(await areDepsMet()) {
+						SettingsManager.currentSettings.ocrPDF = value;
+						await SettingsManager.saveSettings();
+					}
+					else {
+						new Notice("Install ImageMagick to OCR PDFs");
+						tc.setValue(false);
+					}
+				}
+				else {
+					SettingsManager.currentSettings.ocrPDF = value;
+					await SettingsManager.saveSettings();
+				}
 			});
 		}).setName("OCR PDF").setDesc("Whether PDFs should be OCRed");
 		new Setting(this.containerEl).addSlider((slider) => {
@@ -99,6 +121,9 @@ export class SettingsTab extends PluginSettingTab {
 					modal.open();
 					installationProvider.installDependencies(modal.terminal);
 				}
+				else {
+					new Notice("Automatic installation not yet implemented for this platform");
+				}
 			});
 		});
 		new Setting(this.containerEl).addToggle((tc) => {
@@ -108,6 +133,27 @@ export class SettingsTab extends PluginSettingTab {
 				await SettingsManager.saveSettings();
 			});
 		}).setName("Show tips").setDesc("Whether to show a tip at startup");
+		new Setting(this.containerEl).addDropdown((dc) => {
+			dc.addOptions({
+				"debug": "debug",
+				"info": "info",
+				"warn": "warn",
+				"error": "error",
+			});
+			dc.setValue(SettingsManager.currentSettings.logLevel.toString());
+			dc.onChange(async (value) => {
+				SettingsManager.currentSettings.logLevel = <SimpleLogger.STANDARD_LEVELS>value;
+				ObsidianOCRPlugin.logger.setLevel(<SimpleLogger.STANDARD_LEVELS>value);
+				await SettingsManager.saveSettings();
+			});
+		}).setName("Log level").setDesc("Set the log level. Useful for debugging");
+		new Setting(this.containerEl).addToggle((tc) => {
+			tc.setValue(SettingsManager.currentSettings.logToFile);
+			tc.onChange(async (value) => {
+				SettingsManager.currentSettings.logToFile = value;
+				await SettingsManager.saveSettings();
+			});
+		}).setName("Log to file").setDesc("Log to a file in your vault. Useful for debugging");
 		let providerDiv: HTMLDivElement;
 		new Setting(this.containerEl).addDropdown(async (dd) => {
 			OCRProviderManager.ocrProviders

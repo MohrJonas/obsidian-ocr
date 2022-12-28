@@ -1,5 +1,9 @@
 import OCRProvider from "../OCRProvider";
+import ObsidianOCRPlugin from "../../Main";
 
+/**
+ * No-operation implementation of {@link OCRProvider}
+ * */
 export default class NoOpOCRProvider implements OCRProvider {
 
 	public getProviderName(): string {
@@ -11,9 +15,9 @@ export default class NoOpOCRProvider implements OCRProvider {
 	}
 
 	async performOCR(): Promise<Array<string>> {
+		ObsidianOCRPlugin.logger.info("Performing OCR with NoOp");
 		// language=HTML
-		return [`
-			<?xml version="1.0" encoding="UTF-8"?>
+		return [`<?xml version="1.0" encoding="UTF-8"?>
 			<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 				"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 			<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -24,8 +28,7 @@ export default class NoOpOCRProvider implements OCRProvider {
 			</head>
 			<body>
 			</body>
-			</html>
-		`];
+			</html>`];
 	}
 
 	async isUsable(): Promise<boolean> {

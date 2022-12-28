@@ -58,6 +58,11 @@ esbuild.build({
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
+    minify: false,
+    minifyIdentifiers: false,
+    minifySyntax: false,
+    minifyWhitespace: false,
+    keepNames: true,
 	outfile: "main.js",
 	plugins: [inlineWorkerPlugin()]
 }).catch(() => process.exit(1));

@@ -5,13 +5,14 @@ import {readFileSync} from "fs";
 // @ts-ignore
 import * as jsonComplete from "../../node_modules/json-complete/dist/json_complete.cjs.min.js";
 import {readFile} from "fs/promises";
+import ObsidianOCRPlugin from "../Main";
+
 
 export default class Transcript implements HocrElement {
 
-	public readonly parent: undefined = undefined;
 	public readonly bounds: undefined = undefined;
 	public readonly capabilities: Array<string>;
-	public readonly children: Array<Page>;
+	public readonly children: Array<HocrElement>;
 
 	constructor(public readonly ocrVersion: string, public originalFilePath: string, documents: Array<Document>, imagePaths: Array<string>) {
 		if (!documents) return;
@@ -26,7 +27,7 @@ export default class Transcript implements HocrElement {
 		this.children = documents.map((document, index) => {
 			return Array.from(document.getElementsByClassName("ocr_page"))
 				.map((pageDiv) => {
-					return new Page(this, pageDiv as HTMLDivElement, new Buffer(readFileSync(imagePaths[index])).toString("base64"), index);
+					return new Page(pageDiv as HTMLDivElement, new Buffer(readFileSync(imagePaths[index])).toString("base64"), index);
 				});
 		}).flat();
 	}
@@ -41,7 +42,7 @@ export default class Transcript implements HocrElement {
 
 	private static getCapabilities(document: Document): Array<string> {
 		const capabilitiesElements = document.getElementsByName("ocr-capabilities");
-		if (capabilitiesElements.length == 0) console.log("😨 HOCR has no capabilities");
+		if (capabilitiesElements.length == 0) ObsidianOCRPlugin.logger.warn("😨 HOCR has no capabilities");
 		return Array.from(capabilitiesElements).map((element) => {
 			return element.title.split(" ");
 		}).flat();

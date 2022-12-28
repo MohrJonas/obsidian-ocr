@@ -1,31 +1,26 @@
-import {Notice, Setting, SuggestModal, TFile} from "obsidian";
-import * as fuzzy from "fuzzy";
-import Page from "../hocr/Page";
-import Transcript from "../hocr/Transcript";
+import {Setting, SuggestModal, TFile} from "obsidian";
 import SettingsManager from "../Settings";
-import {STATUS, StatusBar} from "../StatusBar";
-import {flattenText} from "../utils/HocrUtils";
-import TranscriptCache from "../TranscriptCache";
 import ImageModal from "./ImageModal";
+import DBManager from "../db/DBManager";
+import {SQLResultPage} from "../db/SQLResultPage";
+import {distance} from "fastest-levenshtein";
+import ObsidianOCRPlugin from "../Main";
 
-export default class SearchModal extends SuggestModal<Page> {
+/**
+ * Modal used to search in transcripts
+ * */
+export default class SearchModal extends SuggestModal<SQLResultPage> {
 
 	private query: string;
-	private pages: Array<Page>;
+	private pages: Array<SQLResultPage>;
 
-	constructor(transcripts: Array<Transcript>) {
+	constructor() {
 		super(app);
-		this.pages = transcripts.map((transcript) => {
-			return transcript.children;
-		}).flat();
-		if (StatusBar.hasStatus(STATUS.CACHING)) {
-			this.modalEl.createEl("strong", {text: "Search results are incomplete while caching"}).id = "suggestion-indexing-warning";
-		}
 		new Setting(this.modalEl)
 			.setName("Fuzzy search")
 			.setDesc("Enable or disable fuzzy search")
 			.addToggle((tc) => {
-				tc.setValue(SettingsManager.currentSettings.fuzzySearch );
+				tc.setValue(SettingsManager.currentSettings.fuzzySearch);
 				tc.onChange(async (value) => {
 					SettingsManager.currentSettings.fuzzySearch = value;
 					await SettingsManager.saveSettings();
@@ -45,40 +40,51 @@ export default class SearchModal extends SuggestModal<Page> {
 			});
 	}
 
-	static open() {
-		new SearchModal(TranscriptCache.getAll()).open();
-	}
-
-	getSuggestions(query: string): Page[] | Promise<Page[]> {
+	getSuggestions(query: string): SQLResultPage[] | Promise<SQLResultPage[]> {
 		this.query = query;
 		if (!query || query.length < 3) return [];
-		if (SettingsManager.currentSettings.fuzzySearch) {
-			return fuzzy.filter(query, this.pages, {
-				extract: (page: Page) => {
-					return flattenText(page);
-				}
-			}).map((score) => {
-				return score.original;
-			});
-		} else {
-			return this.pages.filter((page) => {
-				if (SettingsManager.currentSettings.caseSensitive)
-					return flattenText(page).includes(query);
-				else
-					return flattenText(page).toLowerCase().includes(query.toLowerCase());
-			});
-		}
+		ObsidianOCRPlugin.logger.debug(`Query is ${query}`);
+		if (!this.pages) this.pages = DBManager.getAllPages();
+		if (SettingsManager.currentSettings.fuzzySearch)
+			return this.pages
+				.map((page) => {
+					return {"page": page, "text": SettingsManager.currentSettings.caseSensitive ? page.transcriptText : page.transcriptText.toLowerCase()};
+				})
+				.filter((pageObj) => {
+					return pageObj.text != "";
+				})
+				.map((pageObj) => {
+					let min = Number.MAX_VALUE;
+					for (let i = 0; i < pageObj.text.length - query.length; i += 2) {
+						const substring = pageObj.text.substring(i, i + query.length);
+						min = Math.min(min, distance(SettingsManager.currentSettings.caseSensitive ? query : query.toLowerCase(), substring));
+					}
+					return {"page": pageObj.page, "difference": min};
+				})
+				.sort((a, b) => {
+					return a.difference - b.difference;
+				})
+				.map((pageObj) => {
+					return pageObj.page;
+				})
+				.slice(0, 10);
+		else return this.pages.filter((page) => {
+			if (SettingsManager.currentSettings.caseSensitive)
+				return page.transcriptText.includes(query);
+			else
+				return page.transcriptText.toLowerCase().includes(query.toLowerCase());
+		});
 	}
 
-	renderSuggestion(page: Page, el: HTMLElement) {
+	renderSuggestion(page: SQLResultPage, el: HTMLElement) {
 		el.style.display = "flex";
 		el.style.maxHeight = "150px";
 		const leftColDiv = el.createEl("div", {cls: "suggestion-col"});
 		leftColDiv.id = "left-col";
 		const rightColDiv = el.createEl("div", {cls: "suggestion-col"});
 		rightColDiv.id = "right-col";
-		rightColDiv.createEl("h6", {text: `${page.parent.originalFilePath}, Page ${page.pageNumber + 1}`}).id = "suggestion-heading";
-		rightColDiv.createEl("p", {text: flattenText(page)}).id = "suggestion-text-preview";
+		rightColDiv.createEl("h6", {text: `${DBManager.getTranscriptById(page.transcriptId).relativePath}, Page ${page.pageNum + 1}`}).id = "suggestion-heading";
+		rightColDiv.createEl("p", {text: page.transcriptText}).id = "suggestion-text-preview";
 		const image = leftColDiv.createEl("img");
 		image.src = `data:image/png;base64, ${page.thumbnail}`;
 		image.id = "suggestion-thumbnail";
@@ -88,15 +94,11 @@ export default class SearchModal extends SuggestModal<Page> {
 		};
 	}
 
-	async onChooseSuggestion(page: Page) {
-		const file = this.app.vault.getAbstractFileByPath(page.parent.originalFilePath);
-		if (!file) {
-			new Notice(`Unable to open file ${page.parent.originalFilePath}. Does it exist?`);
-			return;
-		}
-		await this.app.workspace.getLeaf(false).openFile(this.app.vault.getAbstractFileByPath(page.parent.originalFilePath) as TFile, {
+	async onChooseSuggestion(page: SQLResultPage) {
+		ObsidianOCRPlugin.logger.info(`Opening file ${DBManager.getTranscriptById(page.transcriptId).relativePath}`);
+		await this.app.workspace.getLeaf(false).openFile(this.app.vault.getAbstractFileByPath(DBManager.getTranscriptById(page.transcriptId).relativePath) as TFile, {
 			eState: {
-				subpath: `#page=${page.pageNumber + 1}`
+				subpath: `#page=${page.pageNum + 1}`
 			}
 		});
 	}

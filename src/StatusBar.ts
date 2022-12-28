@@ -1,22 +1,33 @@
 import File from "./File";
+import {OcrQueue} from "./utils/OcrQueue";
 
 export enum STATUS {
-    CACHING,
     INDEXING,
     DELETING
 }
 
+/**
+ * Statusbar item
+ * */
 export abstract class StatusBar {
 
 	private static parentHTML: HTMLElement;
 	private static indexingFiles: Array<File> = [];
-	private static cachingFiles: Array<File> = [];
 	private static currentStatus: Set<STATUS> = new Set();
 	private static maxIndexingFile = 0;
-	private static maxCachingFile = 0;
+
+	private static paused = false;
 
 	static setupStatusBar(parentHTML: HTMLElement) {
 		StatusBar.parentHTML = parentHTML;
+		StatusBar.parentHTML.onclick = () => {
+			if (OcrQueue.getQueue().paused)
+				OcrQueue.getQueue().resume();
+			else
+				OcrQueue.getQueue().pause();
+			StatusBar.paused = OcrQueue.getQueue().paused;
+			StatusBar.updateText();
+		};
 	}
 
 	static addStatusDeleting() {
@@ -45,22 +56,6 @@ export abstract class StatusBar {
 		StatusBar.updateText();
 	}
 
-	static setMaxCachingFile(max: number) {
-		StatusBar.maxCachingFile = max;
-	}
-
-	static addCachingFile(file: File) {
-		StatusBar.cachingFiles.push(file);
-		StatusBar.currentStatus.add(STATUS.CACHING);
-		StatusBar.updateText();
-	}
-
-	static removeCachingFile(file: File) {
-		StatusBar.cachingFiles.remove(file);
-		if (StatusBar.cachingFiles.length == 0) StatusBar.currentStatus.delete(STATUS.CACHING);
-		StatusBar.updateText();
-	}
-
 	static hasStatus(status: STATUS): boolean {
 		return StatusBar.currentStatus.has(status);
 	}
@@ -75,7 +70,7 @@ export abstract class StatusBar {
 	private static statusToString(status: STATUS) {
 		if (status == STATUS.INDEXING) {
 			StatusBar.parentHTML.createSpan({
-				text: `🔎 Indexing (${StatusBar.maxIndexingFile - StatusBar.indexingFiles.length}/${StatusBar.maxIndexingFile})`,
+				text: `${StatusBar.paused ? "⏸️" : ""}🔎 Indexing (${StatusBar.maxIndexingFile - StatusBar.indexingFiles.length}/${StatusBar.maxIndexingFile})`,
 				cls: "bar-element"
 			});
 			const progress = StatusBar.parentHTML.createEl("progress", {
@@ -83,19 +78,7 @@ export abstract class StatusBar {
 			});
 			progress.value = StatusBar.maxIndexingFile - StatusBar.indexingFiles.length;
 			progress.max = StatusBar.maxIndexingFile;
-		}
-		else if (status == STATUS.CACHING) {
-			StatusBar.parentHTML.createSpan({
-				text: `🗃 Caching (${StatusBar.maxCachingFile - StatusBar.cachingFiles.length}/${StatusBar.maxCachingFile})`,
-				cls: "bar-element"
-			});
-			const progress = StatusBar.parentHTML.createEl("progress", {
-				cls: "bar-element"
-			});
-			progress.value = StatusBar.maxCachingFile - StatusBar.cachingFiles.length;
-			progress.max = StatusBar.maxCachingFile;
-		}
-		else StatusBar.parentHTML.createSpan({
+		} else StatusBar.parentHTML.createSpan({
 			text: "🗑️ Deleting",
 			cls: "bar-element"
 		});

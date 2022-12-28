@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"baseUrl": ".",
-		"inlineSourceMap": true,
+    "inlineSourceMap": true,
 		"inlineSources": true,
 		"module": "ESNext",
 		"target": "ES6",
@@ -24,7 +24,6 @@
 		"allowSyntheticDefaultImports": true
 	},
 	"include": [
-		"**/*.ts",
-		"decs.d.ts"
+		"**/*.ts"
 	]
 }

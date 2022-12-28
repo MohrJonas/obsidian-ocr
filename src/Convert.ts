@@ -7,14 +7,18 @@ import {join} from "path";
 import exec from "@simplyhexagonal/exec";
 import ObsidianOCRPlugin from "./Main";
 import {globby} from "globby";
-import SettingsManager from "./Settings";
+import moment from "moment/moment";
+import sanitize from "sanitize-filename";
 
 /**
  * Convert a file from a pdf to a png
  * @param file The file to convert
+ * @param density The density setting
+ * @param quality The quality setting
+ * @param additionalImagemagickArgs The additional Imagemagick args
  * @returns A list of absolute png-file paths, each representing a page of the pdf
  */
-export async function convertPdfToPng(file: File): Promise<Array<string>> {
+export async function convertPdfToPng(file: File, density: number, quality: number, additionalImagemagickArgs: string): Promise<Array<string> | undefined> {
 	let platformSpecific: string;
 	switch (platform()) {
 	case "win32":
@@ -25,16 +29,22 @@ export async function convertPdfToPng(file: File): Promise<Array<string>> {
 		platformSpecific = "convert";
 		break;
 	}
-	const randomFolderName = generate({
-		length: 32,
+	const randomPiece = generate({
+		length: 4,
 		charset: "alphanumeric"
 	});
-	const randomFolderPath = join(tmpdir(), randomFolderName);
+	const folderName = sanitize(`${moment().format("YYYY-M-D-H.m")}-${randomPiece}-${file.tFile.basename}`);
+	const randomFolderPath = join(tmpdir(), folderName);
 	await mkdir(randomFolderPath);
-	const command = `${platformSpecific} -density ${SettingsManager.currentSettings.density} -quality ${SettingsManager.currentSettings.quality} -background white -alpha remove -alpha off ${SettingsManager.currentSettings.additionalImagemagickArgs} "${file.absPath}" "${join(randomFolderPath, "out.png")}"`;
-	const execResult = exec(command);
-	ObsidianOCRPlugin.children.push(execResult.execProcess);
-	await execResult.execPromise;
+	ObsidianOCRPlugin.logger.info(`Converting pdf ${file.absPath} to png(s) in ${randomFolderPath}`);
+	const command = `${platformSpecific} -density ${density} -quality ${quality} -background white -alpha remove -alpha off ${additionalImagemagickArgs} "${file.absPath}" "${join(randomFolderPath, "out.png")}"`;
+	const execPromise = exec(command);
+	ObsidianOCRPlugin.children.push(execPromise.execProcess);
+	const execResult = await execPromise.execPromise;
+	if (execResult.exitCode != 0) {
+		ObsidianOCRPlugin.logger.error(`Error converting ${file.vaultRelativePath}: ${execResult.stderrOutput}`);
+		return undefined;
+	}
 	return await globby("*.png", {
 		cwd: randomFolderPath,
 		absolute: true
@@ -49,7 +59,7 @@ export async function areDepsMet(): Promise<boolean> {
 	case "darwin":
 		return await doesProgramExist("convert");
 	default:
-		console.log(`Dependency check not implemented for platform ${platform()}. Assuming everything is okay.`);
+		ObsidianOCRPlugin.logger.warn(`Dependency check not implemented for platform ${platform()}. Assuming everything is okay.`);
 		return true;
 	}
 }

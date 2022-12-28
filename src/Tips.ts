@@ -1,6 +1,9 @@
 import {Notice} from "obsidian";
 import {randomInt} from "crypto";
 
+/**
+ * Tips
+ * */
 export default class Tips {
 
 	private static readonly tips = [

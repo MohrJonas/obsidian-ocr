@@ -4,6 +4,7 @@ import SettingsManager from "../Settings";
 import { delimiter } from "path";
 import {platform} from "os";
 import ObsidianOCRPlugin from "../Main";
+import {find} from "lodash";
 
 /**
  * Manager for all {@link OCRProvider}
@@ -37,9 +38,9 @@ export default abstract class OCRProviderManager {
 	 * */
 	static getByName(name: string): OCRProvider {
 		ObsidianOCRPlugin.logger.debug(`Returning provider with name ${name}`);
-		return OCRProviderManager.ocrProviders.filter((ocrProvider) => {
+		return find(OCRProviderManager.ocrProviders, (ocrProvider) => {
 			return ocrProvider.getProviderName() == name;
-		})[0];
+		});
 	}
 
 	/**

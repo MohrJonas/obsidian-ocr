@@ -21,6 +21,7 @@ import {join} from "path";
 import SettingsModal from "./modals/SettingsModal";
 import TestSuite from "./utils/TestSuite";
 import ArchInstallationProvider from "./utils/installation/providers/ArchInstallationProvider";
+import clipboard from "clipboardy";
 
 export default class ObsidianOCRPlugin extends Plugin {
 
@@ -36,7 +37,7 @@ export default class ObsidianOCRPlugin extends Plugin {
 		ObsidianOCRPlugin.logger = SettingsManager.currentSettings.logToFile
 			? createSimpleFileLogger(join((app.vault.adapter as FileSystemAdapter).getBasePath(), "obsidian-ocr.log"))
 			: createSimpleLogger();
-		ObsidianOCRPlugin.logger.setLevel(SettingsManager.currentSettings.logToFile ? "all": <STANDARD_LEVELS>SettingsManager.currentSettings.logLevel);
+		ObsidianOCRPlugin.logger.setLevel(SettingsManager.currentSettings.logToFile ? "all" : <STANDARD_LEVELS>SettingsManager.currentSettings.logLevel);
 		ObsidianOCRPlugin.plugin = this;
 		OCRProviderManager.addAdditionalPaths();
 		await OCRProviderManager.applyHomebrewWorkaround();
@@ -113,7 +114,7 @@ export default class ObsidianOCRPlugin extends Plugin {
 								item.setDisabled(true);
 						}
 					});
-				else if (isFileValid(File.fromFile(file as TFile), SettingsManager.currentSettings))
+				else if (isFileValid(File.fromFile(file as TFile), SettingsManager.currentSettings)) {
 					menu.addItem((item) => {
 						item.setTitle("Custom OCR settings")
 							.setIcon("note-glyph")
@@ -123,6 +124,20 @@ export default class ObsidianOCRPlugin extends Plugin {
 						if (isFileInIgnoredFolder(File.fromFile(file as TFile)))
 							item.setDisabled(true);
 					});
+					menu.addItem((item) => {
+						item.setTitle("Copy text to clipboard")
+							.setIcon("documents")
+							.onClick(() => {
+								const transcript = DBManager.getTranscriptByRelativePath(file.path);
+								if(!transcript) new Notice("No transcript available");
+								else {
+									const pages = DBManager.getPagesByTranscriptId(transcript.transcriptId);
+									const text = pages.map((page) => { return page.transcriptText; }).join("\n\n");
+									clipboard.write(text).then(() => { new Notice("Content copied to clipboard"); });
+								}
+							});
+					});
+				}
 			})
 		);
 		this.addSettingTab(new SettingsTab(this.app, this));

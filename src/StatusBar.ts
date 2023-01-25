@@ -1,5 +1,6 @@
 import File from "./File";
 import {OcrQueue} from "./utils/OcrQueue";
+import ObsidianOCRPlugin from "./Main";
 
 export enum STATUS {
     INDEXING,
@@ -61,7 +62,10 @@ export abstract class StatusBar {
 	}
 
 	private static updateText() {
-		StatusBar.parentHTML.replaceChildren();
+		if(!StatusBar.parentHTML)
+			ObsidianOCRPlugin.logger.warn("StatusBar parentHTML not yet defined, ignoring");
+		else
+			StatusBar.parentHTML.replaceChildren();
 		StatusBar.currentStatus.forEach((status) => {
 			StatusBar.statusToString(status);
 		});

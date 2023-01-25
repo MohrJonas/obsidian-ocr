@@ -16,8 +16,8 @@ export class OcrQueue {
 	public static getQueue() {
 		this.ocrQueue = this.ocrQueue || async.queue(async function (file, callback) {
 			const transcript = await processFile(file);
-			if (!transcript) return;
-			await DBManager.insertTranscript(file.vaultRelativePath, transcript.children as Array<Page>);
+			if (transcript)
+				await DBManager.insertTranscript(file.vaultRelativePath, transcript.children as Array<Page>);
 			StatusBar.removeIndexingFile(file);
 			callback();
 		}, SettingsManager.currentSettings.concurrentIndexingProcesses);

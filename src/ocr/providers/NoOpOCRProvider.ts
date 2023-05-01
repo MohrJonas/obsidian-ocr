@@ -4,17 +4,17 @@ import ObsidianOCRPlugin from "../../Main";
 /**
  * No-operation implementation of {@link OCRProvider}
  * */
-export default class NoOpOCRProvider implements OCRProvider {
+export default class NoOpOCRProvider extends OCRProvider {
 
-	public getProviderName(): string {
+	public override getProviderName(): string {
 		return "NoOp";
 	}
 
-	displaySettings(element: HTMLElement): void {
+	override displaySettings(element: HTMLElement): void {
 		element.createEl("div", {text: "NoOp-Provider (No Operation) doesn't do anything. Choose another provider from the dropdown."});
 	}
 
-	async performOCR(): Promise<Array<string>> {
+	override async performOCR(): Promise<Array<string>> {
 		ObsidianOCRPlugin.logger.info("Performing OCR with NoOp");
 		// language=HTML
 		return [`<?xml version="1.0" encoding="UTF-8"?>
@@ -31,11 +31,11 @@ export default class NoOpOCRProvider implements OCRProvider {
 			</html>`];
 	}
 
-	async isUsable(): Promise<boolean> {
+	override async isUsable(): Promise<boolean> {
 		return true;
 	}
 
-	getReasonIsUnusable(): undefined {
+	override getReasonIsUnusable(): undefined {
 		return undefined;
 	}
 

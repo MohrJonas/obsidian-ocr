@@ -11,6 +11,6 @@ export async function doesProgramExist(name: string): Promise<boolean> {
 	// @types/which not up-to-date, have to ignore this
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 	// @ts-ignore
-	return await which(name, { nothrow: true  }) != null;
+	return await which(name, { nothrow: true }) != null;
 }
 

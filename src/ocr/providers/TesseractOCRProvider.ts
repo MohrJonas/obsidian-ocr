@@ -9,15 +9,17 @@ import {EOL} from "os";
 /**
  * Tesseract-based implementation of {@link OCRProvider}
  * */
-export default class TesseractOCRProvider implements OCRProvider {
+export default class TesseractOCRProvider extends OCRProvider {
 
 	private static readonly DEFAULT_SETTINGS: Record<string, unknown> = {
 		"lang": "osd",
 		"additionalArguments": ""
 	};
+
 	settings: Record<string, unknown>;
 
 	constructor() {
+		super();
 		const settings = SettingsManager.getOCRProviderSettings(this);
 		if (settings)
 			this.settings = settings;
@@ -25,11 +27,11 @@ export default class TesseractOCRProvider implements OCRProvider {
 			this.settings = TesseractOCRProvider.DEFAULT_SETTINGS;
 	}
 
-	async getReasonIsUnusable(): Promise<undefined | string> {
+	override async getReasonIsUnusable(): Promise<undefined | string> {
 		return (await doesProgramExist("tesseract")) ? undefined : "tesseract wasn't found";
 	}
 
-	async displaySettings(element: HTMLElement): Promise<void> {
+	override async displaySettings(element: HTMLElement): Promise<void> {
 		new Setting(element)
 			.setName("Additional arguments")
 			.setDesc("Additional commandline arguments passed to tesseract")
@@ -63,11 +65,11 @@ export default class TesseractOCRProvider implements OCRProvider {
 		}
 	}
 
-	getProviderName(): string {
+	override getProviderName(): string {
 		return "Tesseract";
 	}
 
-	isUsable(): Promise<boolean> {
+	override isUsable(): Promise<boolean> {
 		return doesProgramExist("tesseract");
 	}
 
@@ -84,7 +86,7 @@ export default class TesseractOCRProvider implements OCRProvider {
 	}
 
 
-	async performOCR(imagePaths: Array<string>): Promise<Array<string> | undefined> {
+	override async performOCR(imagePaths: Array<string>): Promise<Array<string> | undefined> {
 		const results = [];
 		for (const source in imagePaths) {
 			const ocrResult = await this.performOCRSingle(imagePaths[source]);

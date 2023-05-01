@@ -22,6 +22,7 @@ import SettingsModal from "./modals/SettingsModal";
 import TestSuite from "./utils/TestSuite";
 import ArchInstallationProvider from "./utils/installation/providers/ArchInstallationProvider";
 import clipboard from "clipboardy";
+import TesseractJsOCRProvider from "./ocr/providers/TesseractjsOCRProvider";
 
 export default class ObsidianOCRPlugin extends Plugin {
 
@@ -46,7 +47,7 @@ export default class ObsidianOCRPlugin extends Plugin {
 			new DebInstallationProvider(),
 			new ArchInstallationProvider()
 		);
-		OCRProviderManager.registerOCRProviders(new NoOpOCRProvider(), new TesseractOCRProvider());
+		OCRProviderManager.registerOCRProviders(new NoOpOCRProvider(), new TesseractOCRProvider(), new TesseractJsOCRProvider());
 		await DBManager.init();
 		await SettingsManager.validateSettings();
 		this.registerEvent(this.app.vault.on("create", async (tFile) => {

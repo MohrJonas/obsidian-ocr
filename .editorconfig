@@ -1,0 +1,8 @@
+[**/*.ts]
+charset = utf-8
+end_of_line = crlf
+indent_size = 4
+indent_style = tab
+insert_final_newline = false
+tab_width = 4
+trim_trailing_whitespace = true

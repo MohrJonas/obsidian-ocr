@@ -1,7 +1,7 @@
 {
   "id": "obsidian-ocr",
   "name": "Obsidian OCR",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "minAppVersion": "0.12.0",
   "description": "Add ocr capabilities to obsidian",
   "author": "Jonas Mohr",

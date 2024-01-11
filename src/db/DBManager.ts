@@ -11,6 +11,9 @@ import {SQLResultTranscript} from "./SQLResultTranscript";
 import FileSpecificSettings from "./FileSpecificSettings";
 import FileSpecificSQLSettings from "./FileSpecificSQLSettings";
 import SQLResultFolder from "./SQLResultFolder";
+// Typescript complains about the wasm file not having type definitions (duh), so just ignore it
+//@ts-ignore
+import sqlWasm from "../../node_modules/sql.js/dist/sql-wasm.wasm";
 
 /**
  * Abstraction layer between a sqlite database and Obsidian
@@ -26,9 +29,7 @@ export default class DBManager {
 	 * */
 	static async init() {
 		DBManager.DB_PATH = join((ObsidianOCRPlugin.plugin.app.vault.adapter as FileSystemAdapter).getBasePath(), ".obsidian-ocr.sqlite");
-		DBManager.SQL = await initSqlJs({
-			locateFile: file => `https://sql.js.org/dist/${file}`
-		});
+		DBManager.SQL = await initSqlJs({ wasmBinary: new Uint8Array(atob(sqlWasm.split(",")[1]).split("").map((v) => v.charCodeAt(0))) });
 		if (existsSync(DBManager.DB_PATH)) {
 			ObsidianOCRPlugin.logger.info(`Opening already existent database ${this.DB_PATH}`);
 			DBManager.DB = new DBManager.SQL.Database(await readFile(DBManager.DB_PATH));

@@ -1,10 +1,6 @@
 import Page from "./Page";
 import HocrElement from "./HocrElement";
 import {readFileSync} from "fs";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import * as jsonComplete from "../../node_modules/json-complete/dist/json_complete.cjs.min.js";
-import {readFile} from "fs/promises";
 import ObsidianOCRPlugin from "../Main";
 
 
@@ -30,14 +26,6 @@ export default class Transcript implements HocrElement {
 					return new Page(pageDiv as HTMLDivElement, new Buffer(readFileSync(imagePaths[index])).toString("base64"), index);
 				});
 		}).flat();
-	}
-
-	static async load(path: string): Promise<Transcript> {
-		return jsonComplete.decode((await readFile(path)).toString());
-	}
-
-	static encode(transcript: Transcript): string {
-		return jsonComplete.encode(transcript);
 	}
 
 	private static getCapabilities(document: Document): Array<string> {

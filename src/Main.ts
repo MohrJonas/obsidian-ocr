@@ -10,9 +10,6 @@ import {processVault, removeAllJsonFiles} from "./utils/FileOps";
 import SearchModal from "./modals/SearchModal";
 import {OcrQueue} from "./utils/OcrQueue";
 import {ChildProcess} from "child_process";
-import InstallationProviderManager from "./utils/installation/InstallationProviderManager";
-import WindowsInstallationProvider from "./utils/installation/providers/WindowsInstallationProvider";
-import DebInstallationProvider from "./utils/installation/providers/DebInstallationProvider";
 import Tips from "./Tips";
 import DBManager from "./db/DBManager";
 import {isFileInIgnoredFolder, isFileValid, shouldFileBeOCRed} from "./utils/FileUtils";
@@ -20,7 +17,6 @@ import SimpleLogger, {createSimpleFileLogger, createSimpleLogger, STANDARD_LEVEL
 import {join} from "path";
 import SettingsModal from "./modals/SettingsModal";
 import TestSuite from "./utils/TestSuite";
-import ArchInstallationProvider from "./utils/installation/providers/ArchInstallationProvider";
 import clipboard from "clipboardy";
 import TesseractJsOCRProvider from "./ocr/providers/TesseractjsOCRProvider";
 
@@ -42,12 +38,7 @@ export default class ObsidianOCRPlugin extends Plugin {
 		ObsidianOCRPlugin.plugin = this;
 		OCRProviderManager.addAdditionalPaths();
 		await OCRProviderManager.applyHomebrewWorkaround();
-		InstallationProviderManager.registerProviders(
-			new WindowsInstallationProvider(),
-			new DebInstallationProvider(),
-			new ArchInstallationProvider()
-		);
-		OCRProviderManager.registerOCRProviders(new NoOpOCRProvider(), new TesseractOCRProvider(), new TesseractJsOCRProvider());
+		OCRProviderManager.registerOCRProviders(new NoOpOCRProvider(), new TesseractOCRProvider());
 		await DBManager.init();
 		await SettingsManager.validateSettings();
 		this.registerEvent(this.app.vault.on("create", async (tFile) => {

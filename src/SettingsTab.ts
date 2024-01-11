@@ -4,8 +4,6 @@ import OCRProviderManager from "./ocr/OCRProviderManager";
 import {OcrQueue} from "./utils/OcrQueue";
 import {delimiter} from "path";
 import {areDepsMet} from "./Convert";
-import InstallationProviderManager from "./utils/installation/InstallationProviderManager";
-import TerminalModal from "./modals/TerminalModal";
 import ObsidianOCRPlugin from "./Main";
 import SimpleLogger from "simple-node-logger";
 import ReindexingModal from "./modals/ReindexingModal";
@@ -112,20 +110,6 @@ export class SettingsTab extends PluginSettingTab {
 			});
 		}).setName("Additional search paths (Requires restart)")
 			.setDesc(`Additional paths to be searched for programs, in this format: "folder1${delimiter}folder2..."`);
-		if (!await areDepsMet()) new Setting(this.containerEl).addButton((btn) => {
-			btn.setButtonText("[ALPHA] Install dependencies");
-			btn.onClick(async () => {
-				const installationProvider = await InstallationProviderManager.getCorrectProvider();
-				if (installationProvider) {
-					const modal = new TerminalModal(ObsidianOCRPlugin.plugin.app);
-					modal.open();
-					installationProvider.installDependencies(modal.terminal);
-				}
-				else {
-					new Notice("Automatic installation not yet implemented for this platform");
-				}
-			});
-		});
 		new Setting(this.containerEl).addToggle((tc) => {
 			tc.setValue(SettingsManager.currentSettings.showTips);
 			tc.onChange(async (value) => {

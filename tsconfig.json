@@ -13,7 +13,6 @@
 		"noImplicitReturns": true,
 		"noImplicitThis": true,
 		"noImplicitOverride": true,
-		"noImplicitUseStrict": true,
 		"strictNullChecks": false,
 		"lib": [
 			"DOM",

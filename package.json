@@ -34,7 +34,7 @@
 		"webpack": "^5.89.0",
 		"webpack-cli": "^5.1.4",
 		"@types/randomstring": "^1.1.11",
-		"npm-check-updates": "^16.14.12"
+		"npm-check-updates": "^19.4.1"
 	},
 	"dependencies": {
 		"@simplyhexagonal/exec": "^2.0.2",
